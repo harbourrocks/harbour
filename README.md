@@ -3,6 +3,6 @@ Harbour is a docker registry including build system focused on cloud native envi
 
 ![Screenshot of Harbour](images/screenshot.png)
 
-# Fontawesome
+# Font Awesome
 
-The project, application, website including our harbour.rocks organizational logo uses fontawesome licensed under https://fontawesome.com/license. There were no modifications made. Thank you fontawesome for providing a wide variety of free icons!
+The project, application, website including our harbour.rocks organizational logo uses Font Awesome licensed under https://fontawesome.com/license. There were no modifications made. Thank you Font Awesome for providing a wide variety of free icons!
