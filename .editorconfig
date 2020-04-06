@@ -1,0 +1,4 @@
+root = true
+
+[*.go]
+end_of_line = lf

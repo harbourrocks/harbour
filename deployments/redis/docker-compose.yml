@@ -1,0 +1,12 @@
+version: '3.3'
+services:
+  redis:
+    container_name: standalone-redis
+    image: redis:5-alpine
+    entrypoint: ["redis-server", "--appendonly", "yes"]
+    networks: 
+      - standalone-redis
+    ports: 
+      - "6379:6379"
+networks: 
+  standalone-redis:

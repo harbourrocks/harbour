@@ -9,13 +9,14 @@
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "${fileDirname}",
+            "program": "${workspaceFolder}/cmd/harbour-iam/main.go",
             "env": {
                 "OIDC_CLIENT_ID": "d8dfd041-5a71-465d-8d15-7d2b91c0b1ba",
-                "OIDC_CLIENT_SECRET": "",
                 "OIDC_URL": "https://login.microsoftonline.com/07a987a0-3eef-42a9-a7d6-53698899fcf2/v2.0",
-                "OIDC_LOGIN_CALLBACK": "http://localhost:5100/auth/oidc/callback"
+                "IAM_BASE_URL": "http://localhost:5100",
+                "LOG_LEVEL": "trace"
             },
+            "envFile": "${workspaceFolder}/.env",
             "args": []
         }
     ]
