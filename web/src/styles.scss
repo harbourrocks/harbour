@@ -1,6 +1,16 @@
 /* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=Baloo+Thambi+2:wght@400;500;600&display=swap');
+@import "./assets/normalize.scss";
 body, html {
     margin: 0;
     padding: 0;
-    
+    font-family: 'Baloo Thambi 2', cursive;    
+    background-color: #F9F9F9;
+}
+
+input {
+    padding: 4px;
+    -webkit-appearance: none; 
+    -moz-appearance: none; 
+    border: 2px solid #eee; /* Here */
 }
