@@ -6,11 +6,13 @@ import {SettingsComponent} from './views/settings/settings.component';
 import {WizardComponent} from './views/wizard/wizard.component';
 import {AuthGuard} from "./auth/auth.guard";
 import {OidcCallbackGuard} from "./auth/oidc-callback.guard";
+import { RepositoryDetailComponent } from './views/repository-detail/repository-detail.component';
 
 
 const routes: Routes = [
   { path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard] },
   { path: 'repository', component: RepositoryComponent, canActivate: [AuthGuard] },
+  { path: 'repository/:id', component: RepositoryDetailComponent, canActivate: [AuthGuard] },
   { path: 'settings', component: SettingsComponent, canActivate: [AuthGuard] },
   { path: 'wizard', component: WizardComponent, canActivate: [AuthGuard] },
   { path: 'auth/oidc/callback', component: DashboardComponent, canActivate: [OidcCallbackGuard] },

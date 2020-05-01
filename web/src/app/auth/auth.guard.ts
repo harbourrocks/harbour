@@ -37,7 +37,7 @@ export class AuthGuard implements CanActivate {
       scope: 'openid',
       response_type: 'code',
       extraQueryParams: {
-        login_hint: 'oliver.seitz@harbour.rocks'
+        // login_hint: 'oliver.seitz@harbour.rocks'
       }
     });
 
