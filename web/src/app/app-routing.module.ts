@@ -1,21 +1,20 @@
-import { NgModule } from '@angular/core';
-import { Routes, RouterModule } from '@angular/router';
-import { AppComponent } from './app.component';
-import { DashboardComponent } from './views/dashboard/dashboard.component';
-import { RepositoryComponent } from './views/repository/repository.component';
-import { SettingsComponent } from './views/settings/settings.component';
-import { WizardComponent } from './views/wizard/wizard.component';
-import { RepositoryDetailComponent } from './views/repository-detail/repository-detail.component';
+import {NgModule} from '@angular/core';
+import {RouterModule, Routes} from '@angular/router';
+import {DashboardComponent} from './views/dashboard/dashboard.component';
+import {RepositoryComponent} from './views/repository/repository.component';
+import {SettingsComponent} from './views/settings/settings.component';
+import {WizardComponent} from './views/wizard/wizard.component';
+import {AuthGuard} from "./auth/auth.guard";
+import {OidcCallbackGuard} from "./auth/oidc-callback.guard";
 
 
 const routes: Routes = [
-  { path: 'dashboard', component: DashboardComponent },
-  { path: 'repository', component: RepositoryComponent },
-  { path: 'repository/:repoId', component: RepositoryDetailComponent },
-  { path: 'settings', component: SettingsComponent },
-  { path: 'wizard', component: WizardComponent },
-  { path: '**', component: DashboardComponent },
-  
+  { path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard] },
+  { path: 'repository', component: RepositoryComponent, canActivate: [AuthGuard] },
+  { path: 'settings', component: SettingsComponent, canActivate: [AuthGuard] },
+  { path: 'wizard', component: WizardComponent, canActivate: [AuthGuard] },
+  { path: 'auth/oidc/callback', component: DashboardComponent, canActivate: [OidcCallbackGuard] },
+  { path: '**', redirectTo: 'dashboard' },
 ];
 
 @NgModule({
