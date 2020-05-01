@@ -1,0 +1,43 @@
+@import "../../../assets/colors.scss";
+
+.header {
+    margin-bottom: 25px;    
+    display: flex;
+    flex-flow: row nowrap;
+    >*:not(:first-child){
+        margin-left: 15px;
+    }
+
+    &-icon {
+        color: $color-dark-grey;
+        font-size: 45px;
+    }
+
+    &-text {
+        line-height: 45px;
+        font-size: 25px;
+        color: $color-dark-grey;
+        font-weight: bold;
+    }
+
+    &-divider {
+        margin-top: 22.5px;
+        height: 1px;
+        background: $color-dark-grey;
+        width: 100%;
+        &--small {
+            width: 40px;
+        }
+
+        &--medium {
+            width: calc(40px + 42px + 15px + 30px);
+        }
+    }
+}
+
+
+.list {
+    margin-bottom: 20px;
+    display: block;
+    padding-left: 50px; 
+}

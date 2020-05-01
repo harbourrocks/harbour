@@ -12,6 +12,7 @@ import { SearchbarComponent } from './components/searchbar/searchbar.component';
 import { GroupsComponent } from './components/groups/groups.component';
 import { ListComponent } from './components/list/list.component';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { ListDirective } from './components/list/list.directive';
 
 @NgModule({
   declarations: [
@@ -23,7 +24,8 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
     NavbarComponent,
     SearchbarComponent,
     GroupsComponent,
-    ListComponent
+    ListComponent,
+    ListDirective
   ],
   imports: [
     BrowserModule,

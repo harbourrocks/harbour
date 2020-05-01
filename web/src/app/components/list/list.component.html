@@ -1,1 +1,7 @@
-<p>list works!</p>
+<div #expandable class="list">
+    <div #colorblock class="list-colorblock" [class.list-colorblock--small]="groupHovered || isHovered || groupSmallColorBlock"></div>
+    <div class="list-text">
+        {{listData.text}}
+        <ng-template list-host></ng-template>
+    </div>
+</div>
