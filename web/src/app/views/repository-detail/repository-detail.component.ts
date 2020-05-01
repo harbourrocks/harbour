@@ -24,6 +24,7 @@ export class RepositoryDetailComponent implements OnInit, AfterViewInit {
 
   constructor() { 
     const groupProperty:GroupModel = {
+      smallColorbox:true,
       listItems:[
         {text: "2.0.0-release1"},
         {text: "1.3.1"},
