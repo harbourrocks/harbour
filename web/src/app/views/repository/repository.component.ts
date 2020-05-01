@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { GroupModel } from 'src/app/models/group.model';
-import { faGithub, faGitlab } from '@fortawesome/free-brands-svg-icons';
+import { faShip } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-repository',
@@ -14,26 +14,32 @@ export class RepositoryComponent implements OnInit {
     this.groupArr = [
       {
         smallColorbox: true,
-        title: "Github",
-        icon: faGithub,
+        title: "Harbour",
+        icon: faShip,
         collapsable: true,
         listItems: [
           {
-            text: "github.com",
+            text: "harbour-scm",
+          },
+          {
+            text: "harbour-build",
+          },
+          {
+            text: "harbour-iam",
           },
         ]
       },
       {
         smallColorbox: true,
-        title: "Gitlab",
-        icon: faGitlab,
+        title: "Sample Project",
+        icon: faShip,
         collapsable: true,
         listItems: [
           {
-            text: "gitlab.com",
+            text: "sample-frontend",
           },
           {
-            text: "r-n-d.informatik.hs-augsburg.de",
+            text: "sample-backend",
           }
         ]
       },

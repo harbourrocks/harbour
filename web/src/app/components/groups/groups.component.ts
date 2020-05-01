@@ -22,7 +22,6 @@ export class GroupsComponent implements OnInit, AfterViewInit {
   ngAfterViewInit(): void {
     const el: HTMLElement = this.content.nativeElement;
     this.maxHeight = el.offsetHeight;
-    console.log(this.maxHeight, el.style.maxHeight,el);
   }
 
   ngOnInit(): void {
@@ -45,7 +44,6 @@ export class GroupsComponent implements OnInit, AfterViewInit {
     if(!this.isCollapsed){
       await this.sleep(200);
       el.style.maxHeight = "";
-      console.log("NOW")
     }
 
     this.blocked = false;

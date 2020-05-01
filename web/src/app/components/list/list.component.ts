@@ -60,7 +60,6 @@ export class ListComponent implements OnInit {
 
   sendHoveredEvent() {
     this.hovered.emit(!this.groupHovered);
-    console.log('ev')
   }
 
   updateHeight(delay = 200) {
