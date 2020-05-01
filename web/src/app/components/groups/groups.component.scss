@@ -19,6 +19,9 @@
         color: $color-dark-grey;
         font-weight: bold;
     }
+    &-collapse {
+        cursor: pointer;
+    }
 
     &-divider {
         margin-top: 22.5px;
@@ -35,9 +38,13 @@
     }
 }
 
+.groups-wrapper {
+    overflow: hidden;
+    transition: max-height 0.25s ease-in-out;
+}
 
 .list {
     margin-bottom: 20px;
     display: block;
-    padding-left: 50px; 
 }
+

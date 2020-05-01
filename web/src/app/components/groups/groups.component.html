@@ -1,12 +1,13 @@
-<div class="groups">
+<div #expandable class="groups">
     <div class="header" *ngIf="groupData.icon || groupData.title || groupData.collapsable">
         <fa-icon class="header-icon" [icon]="groupData.icon" *ngIf="groupData.icon"></fa-icon>
         <div class="header-divider header-divider--small" [class.header-divider--medium]="!groupData.icon" *ngIf="groupData.icon && groupData.title || groupData.title"></div>
         <div class="header-text" *ngIf="groupData.title">{{groupData.title}}</div>
         <div class="header-divider"></div>
-        <div class="header-text" *ngIf="groupData.collapsable">Collapse</div>
+        <div class="header-text header-collapse" *ngIf="groupData.collapsable" (click)="onCollapse()">Collapse</div>
     </div>
-
-    <app-list class="list" *ngFor="let item of groupData.listItems" [listData]="item"
-    [groupHovered]="isHovered" [groupSmallColorBlock]="groupData.smallColorbox" (hovered)="onHovered($event)"></app-list>
+    <div #content class="groups-wrapper" [style.padding-left]="!(groupData.icon || groupData.title || groupData.collapsable) ? 0 : 50 + 'px'" >
+        <app-list class="list" *ngFor="let item of groupData.listItems" [listData]="item"
+        [groupHovered]="isHovered" [groupSmallColorBlock]="groupData.smallColorbox" (hovered)="onHovered($event)"></app-list>
+    </div>
 </div>

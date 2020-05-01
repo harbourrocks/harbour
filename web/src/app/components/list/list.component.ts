@@ -81,7 +81,6 @@ export class ListComponent implements OnInit {
 
   changeBarWidth(hovered: boolean) {
     const el = this.colorblock.nativeElement;
-
     setTimeout(() => {
 
       const prevWidth = el.style.width;
