@@ -63,7 +63,7 @@ export class ListComponent implements OnInit {
     console.log('ev')
   }
 
-  updateHeight(delay = 0) {
+  updateHeight(delay = 200) {
     const el = this.expandable.nativeElement;
 
     setTimeout(() => {

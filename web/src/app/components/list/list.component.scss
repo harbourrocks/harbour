@@ -10,26 +10,32 @@
     display: flex;
     flex-flow: row nowrap;
     overflow: hidden;
-    transition: all 0.5s;
+    transition: all 0.2s ease-in-out;
 
     &-text {
     font-size: 25px;
     color: $color-dark-grey;
     font-weight: bold;
-    line-height: 70px;
+    line-height: 74px;
     padding-left: 50px;
-    transition: all 2s;
-
+    transition: all 0.2s ease-in-out;
+    margin-top: 0px;
+        &--open {
+            margin-top: 10px;
+        }
     }
     &-colorblock{
         height: 100%;
         width: 15px;
         background: #C433FF;
+        margin-right: 0;
         &--small{
             width: 7px;
+            margin-right: 8px;
         }
+        
+    transition: all 0.2s ease-in-out;
 
-        transition: all 0.5s;
     }
 
 
