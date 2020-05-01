@@ -1,4 +1,4 @@
-<div #expandable class="list">
+<div #expandable class="list" (click)="gotoDetails()" [style.cursor]="listData.details?'pointer':'default'">
     <div #colorblock class="list-colorblock" [class.list-colorblock--small]="groupHovered || isHovered || groupSmallColorBlock"></div>
     <div class="list-text" [class.list-text--open]="isHovered">
         {{listData.text}}

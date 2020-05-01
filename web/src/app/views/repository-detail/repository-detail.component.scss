@@ -1,0 +1,30 @@
+@import "../../../assets/colors.scss";
+
+.header {
+    display: flex;
+    flex-flow: row nowrap;
+    margin-bottom: 60px;
+    margin-left: 60px;
+    >*:not(:first-child) {
+        margin-left: 120px;
+    }
+
+    &-text{
+        text-decoration: none;
+        font-size: 22px;
+        color: $color-dark-grey;
+        cursor: pointer;
+    }
+
+    &-underscore {
+        height: 1px;
+        background: $color-dark-grey;
+        width: 200px;
+        position: absolute;
+        transition: all 0.35s;
+    }
+}
+
+.group-wrapper {
+    overflow-y: scroll;
+}

@@ -6,6 +6,7 @@ body, html {
     padding: 0;
     font-family: 'Baloo Thambi 2', cursive;    
     background-color: #F9F9F9;
+    overflow: hidden;
 }
 
 input {
@@ -14,3 +15,27 @@ input {
     -moz-appearance: none; 
     border: 2px solid #eee; /* Here */
 }
+
+
+
+
+
+// scrollbar?
+html {
+    --scrollbarBG: rgb(189, 179, 179);
+    --thumbBG: #90A4AE;
+  }
+  *::-webkit-scrollbar {
+    width: 7px;
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--thumbBG) var(--scrollbarBG);
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  *::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbarBG) ;
+    border-radius: 6px;
+  }
