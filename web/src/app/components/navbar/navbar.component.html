@@ -1,0 +1,8 @@
+<div class="navbar">
+    <ul class="list">
+        <li *ngFor="let item of navbarBuild" class="list-item">
+            <fa-icon class="list-icon" [icon]="item.icon"></fa-icon>
+            <a [routerLink]="item.routerLink" class="list-link">{{item.text}}</a>
+        </li>
+    </ul>
+</div>
