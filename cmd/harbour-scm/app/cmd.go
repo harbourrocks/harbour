@@ -1,7 +1,8 @@
 package app
 
 import (
-	"github.com/harbourrocks/harbour/pkg/harbouriam"
+	"github.com/harbourrocks/harbour/pkg/harbourscm"
+	"github.com/harbourrocks/harbour/pkg/harbourscm/configuration"
 	"github.com/harbourrocks/harbour/pkg/logconfig"
 	"github.com/harbourrocks/harbour/pkg/redisconfig"
 	"github.com/sirupsen/logrus"
@@ -9,16 +10,16 @@ import (
 	"github.com/spf13/viper"
 )
 
-// NewIAMServerCommmand creates a *cobra.Command object with default parameters
-func NewIAMServerCommmand() *cobra.Command {
+// NewSCMServerCommmand creates a *cobra.Command object with default parameters
+func NewSCMServerCommmand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use: "harbour-iam",
-		Long: `The harbour.rocks IAM server manages
-authentication and authorization for the harbour environment.`,
+		Use: "harbour-scm",
+		Long: `The harbour.rocks SCM server manages
+external version control repositories.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			// load OIDC  config
-			s := harbouriam.ParseViperConfig()
+			// load SCM config
+			s := configuration.ParseViperConfig()
 
 			// load redis config
 			s.Redis = redisconfig.ParseViperConfig()
@@ -27,12 +28,12 @@ authentication and authorization for the harbour environment.`,
 			l := logconfig.ParseViperConfig()
 			logconfig.ConfigureLog(l)
 
-			logrus.Info("Harbour IAM configured")
+			logrus.Info("Harbour SCM configured")
 
 			// test redis connection
 			redisconfig.TestConnection(s.Redis)
 
-			return harbouriam.RunIAMServer(s)
+			return harbourscm.RunSCMServer(s)
 		},
 	}
 

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Github Register Test</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+        }
+
+        * {
+            font-family: Verdana;
+        }
+
+        input {
+            padding: 15px 30px;
+            background-color: transparent;
+            box-shadow: none;
+            border: 1px solid gray;
+            border-radius: 5px;
+            outline: none;
+        }
+
+        input:hover {
+            background-color: lightgray;
+            cursor: pointer;
+        }
+
+        #form {
+            margin: 100px 50px;
+        }
+    </style>
+</head>
+<body>
+<form id="form" action="https://github.com/organizations/harbourrocks/settings/apps/new?state=abc123" method="post">
+    <h2>Create a GitHub App Manifest</h2>
+    <h5>https://github.com/organizations/harbourrocks/settings/apps/new?state=abc123</h5>
+    <textarea type="text" name="manifest" rows="20" cols="60"
+              id="manifest" placeholder="Manifest"></textarea><br/><br/>
+    <p style="font-size: 9pt; color: red;">Make sure to run ngrok and configure the ngix reverse url as host path</p>
+    <input type="submit" value="Submit">
+</form>
+
+<script>
+    // CORS ... :(
+
+    // fetch('http://localhost:5200/scm/github/manifest')
+    //     .then(response => {
+    //         document.getElementById("manifest").value = response.json();
+    //     })
+</script>
+</body>
+</html>

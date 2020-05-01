@@ -62,7 +62,7 @@ func RunIAMServer(o *Options) error {
 	})
 
 	bindAddress := "127.0.0.1:5100"
-	logrus.Info(fmt.Sprintf("Listening on http://%s/", bindAddress))
+	logrus.Info(fmt.Sprintf("Listening on httphandler://%s/", bindAddress))
 
 	err = http.ListenAndServe(bindAddress, nil)
 	logrus.Fatal(err)

@@ -42,6 +42,7 @@ func (a AuthHandler) Redirect(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//param := oauth2.SetAuthURLParam("response_mode", "form_post") // form_post recommended
 	redirectURL := a.OAuthConfig.AuthCodeURL(state)
 	logrus.Debug("OIDC RedirectURL: ", redirectURL)
 
@@ -58,6 +59,7 @@ func (a AuthHandler) Callback(w http.ResponseWriter, r *http.Request) {
 	// a known state parameter the first time it occurs in a response
 	serverState := r.URL.Query().Get("state")
 	redisClient := redisconfig.OpenClient(a.Options.Redis)
+
 	defer redisClient.Close()
 	if s := redisClient.Del(fmt.Sprint("state:", serverState)); s.Val() != 1 {
 		logrus.Error("Unknown State: ", s)
@@ -81,24 +83,14 @@ func (a AuthHandler) Callback(w http.ResponseWriter, r *http.Request) {
 
 	verifier := a.OIDCProvider.Verifier(a.OIDCConfig)
 	idToken, err := verifier.Verify(ctx, rawIDToken)
+	logrus.Debugf("Id Token: %s", idToken)
 	if err != nil {
 		logrus.Error("No id_token field in oauth2 token: ", err)
 		http.Error(w, "Failed to verify ID Token, please try again", http.StatusInternalServerError)
 		return
 	}
 
-	oauth2Token.AccessToken = "*REDACTED*"
-
-	resp := struct {
-		OAuth2Token   *oauth2.Token
-		IDTokenClaims *json.RawMessage // ID Token payload is just JSON.
-	}{oauth2Token, new(json.RawMessage)}
-
-	if err := idToken.Claims(&resp.IDTokenClaims); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	data, err := json.MarshalIndent(resp, "", "    ")
+	data, err := json.MarshalIndent(oauth2Token, "", "    ")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

@@ -2,6 +2,7 @@ package redisconfig
 
 import (
 	"github.com/go-redis/redis/v7"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
@@ -31,4 +32,15 @@ func OpenClient(o *RedisOptions) *redis.Client {
 	})
 
 	return client
+}
+
+// TestConnection fails if the connection can not be established
+func TestConnection(o *RedisOptions) {
+	redisClient := OpenClient(o)
+	if pong, err := redisClient.Ping().Result(); err != nil {
+		logrus.Fatal("Failed to open redis connection: ", err)
+	} else {
+		logrus.Info("Redis connection ok: ", pong)
+		redisClient.Close()
+	}
 }

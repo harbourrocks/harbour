@@ -1,0 +1,17 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="go build github.com/harbourrocks/harbour/cmd/harbour-iam" type="GoApplicationRunConfiguration" factoryName="Go Application" nameIsGenerated="true">
+    <module name="harbour" />
+    <working_directory value="$PROJECT_DIR$" />
+    <envs>
+      <env name="OIDC_CLIENT_ID" value="d8dfd041-5a71-465d-8d15-7d2b91c0b1ba" />
+      <env name="OIDC_URL" value="https://login.microsoftonline.com/07a987a0-3eef-42a9-a7d6-53698899fcf2/v2.0" />
+      <env name="IAM_BASE_URL" value="http://localhost:5100" />
+      <env name="LOG_LEVEL" value="trace" />
+    </envs>
+    <kind value="PACKAGE" />
+    <filePath value="$PROJECT_DIR$/cmd/harbour-iam/main.go" />
+    <package value="github.com/harbourrocks/harbour/cmd/harbour-iam" />
+    <directory value="$PROJECT_DIR$/" />
+    <method v="2" />
+  </configuration>
+</component>
