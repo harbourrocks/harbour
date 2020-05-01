@@ -1,0 +1,25 @@
+@import "../../../assets/colors.scss";
+
+.addgroup {
+    display: flex;
+    flex-flow: row nowrap;
+    >*:not(:first-child){
+        margin-left: 15px;
+    }
+    &-divider {
+        margin-top: 22.5px;
+        height: 1px;
+        background: $color-dark-grey;
+        width: 100%;
+    }
+
+    &-text {
+        line-height: 45px;
+        font-size: 25px;
+        color: $color-dark-grey;
+        font-weight: bold;
+        white-space: nowrap;
+        cursor: pointer;
+    }
+
+}
