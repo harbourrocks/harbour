@@ -10,8 +10,8 @@ import (
 	"github.com/spf13/viper"
 )
 
-// NewSCMServerCommmand creates a *cobra.Command object with default parameters
-func NewSCMServerCommmand() *cobra.Command {
+// NewSCMServerCommand creates a *cobra.Command object with default parameters
+func NewSCMServerCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "harbour-scm",
 		Long: `The harbour.rocks SCM server manages
@@ -20,9 +20,6 @@ external version control repositories.`,
 
 			// load SCM config
 			s := configuration.ParseViperConfig()
-
-			// load redis config
-			s.Redis = redisconfig.ParseViperConfig()
 
 			// configure logging
 			l := logconfig.ParseViperConfig()

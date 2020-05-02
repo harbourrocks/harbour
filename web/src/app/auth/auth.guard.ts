@@ -34,7 +34,7 @@ export class AuthGuard implements CanActivate {
       client_id: environment.oidcClientId,
       redirect_uri: environment.oidcRedirectUrl,
       response_mode: 'query',
-      scope: 'openid',
+      scope: 'openid profile email',
       response_type: 'code',
       extraQueryParams: {
         login_hint: 'oliver.seitz@harbour.rocks'

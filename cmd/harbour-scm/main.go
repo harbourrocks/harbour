@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	cmd := app.NewSCMServerCommmand()
+	cmd := app.NewSCMServerCommand()
 
 	if err := cmd.Execute(); err != nil {
 		os.Exit(1)

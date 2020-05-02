@@ -7,7 +7,7 @@ import (
 )
 
 // ParseViperConfig tries to map a viper configuration to LoggingOptions
-func ParseViperConfig() *RedisOptions {
+func ParseViperConfig() RedisOptions {
 	l := NewDefaultRedisOptions()
 
 	if v := viper.GetString("REDIS_ADDRESS"); v != "" {
@@ -24,7 +24,7 @@ func ParseViperConfig() *RedisOptions {
 }
 
 // OpenClient creates a new redis client.
-func OpenClient(o *RedisOptions) *redis.Client {
+func OpenClient(o RedisOptions) *redis.Client {
 	client := redis.NewClient(&redis.Options{
 		Addr:     o.Address,
 		Password: o.Password,
@@ -35,7 +35,7 @@ func OpenClient(o *RedisOptions) *redis.Client {
 }
 
 // TestConnection fails if the connection can not be established
-func TestConnection(o *RedisOptions) {
+func TestConnection(o RedisOptions) {
 	redisClient := OpenClient(o)
 	if pong, err := redisClient.Ping().Result(); err != nil {
 		logrus.Fatal("Failed to open redis connection: ", err)

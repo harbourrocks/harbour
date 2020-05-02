@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	cmd := app.NewIAMServerCommmand()
+	cmd := app.NewIAMServerCommand()
 
 	if err := cmd.Execute(); err != nil {
 		os.Exit(1)

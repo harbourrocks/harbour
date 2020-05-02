@@ -1,32 +1,20 @@
 package harbouriam
 
 import (
-	"context"
 	"fmt"
+	"github.com/harbourrocks/harbour/pkg/harbouriam/configuration"
+	"github.com/harbourrocks/harbour/pkg/harbouriam/handler"
+	"github.com/harbourrocks/harbour/pkg/httphandler"
 	"net/http"
 	"net/url"
 	"path"
 
-	"github.com/coreos/go-oidc"
 	"github.com/sirupsen/logrus"
-	"golang.org/x/oauth2"
 )
 
 // RunIAMServer runns the IAM server application
-func RunIAMServer(o *Options) error {
+func RunIAMServer(o *configuration.Options) error {
 	logrus.Info("Started Harbour IAM server")
-
-	ctx := context.Background()
-
-	// discover oidc endpoint configuration
-	provider, err := oidc.NewProvider(ctx, o.OIDCURL)
-	if err != nil {
-		logrus.Fatal(err)
-	}
-
-	oidcConfig := &oidc.Config{
-		ClientID: o.OIDCClientID,
-	}
 
 	// obtain login redirect url
 	redirectURL, err := url.Parse(o.IAMBaseURL)
@@ -36,29 +24,47 @@ func RunIAMServer(o *Options) error {
 		redirectURL.Path = path.Join(redirectURL.Path, "/auth/oidc/callback")
 	}
 
-	config := &oauth2.Config{
-		ClientID:     o.OIDCClientID,
-		ClientSecret: o.OIDCClientSecret,
-		Endpoint:     provider.Endpoint(),
-		RedirectURL:  redirectURL.String(),
-		Scopes:       []string{oidc.ScopeOpenID, "email"},
-	}
-
-	authHandler := AuthHandler{
-		OAuthConfig:  config,
-		OIDCConfig:   oidcConfig,
-		OIDCProvider: provider,
-		Options:      o,
-	}
-
-	http.HandleFunc("/auth", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/auth/test", func(w http.ResponseWriter, r *http.Request) {
 		logrus.Trace(r)
-		authHandler.Redirect(w, r)
+		// AuthHandler
+		authHandler := handler.AuthHandler{
+			HttpHandler: httphandler.HttpHandler{
+				Request:    r,
+				Response:   w,
+				OIDCConfig: o.OIDCConfig,
+			},
+			RedisOptions: o.Redis,
+		}
+		authHandler.Test()
 	})
 
-	http.HandleFunc("/auth/oidc/callback", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/refresh", func(w http.ResponseWriter, r *http.Request) {
 		logrus.Trace(r)
-		authHandler.Callback(w, r)
+		// AuthHandler
+		profileHandler := handler.ProfileHandler{
+			HttpHandler: httphandler.HttpHandler{
+				Request:    r,
+				Response:   w,
+				OIDCConfig: o.OIDCConfig,
+			},
+			RedisOptions: o.Redis,
+		}
+		profileHandler.HandleRefreshProfile()
+	})
+
+	// DockerHandler
+
+	http.HandleFunc("/docker/password", func(w http.ResponseWriter, r *http.Request) {
+		logrus.Trace(r)
+		dockerHandler := handler.DockerHandler{
+			HttpHandler: httphandler.HttpHandler{
+				Request:    r,
+				Response:   w,
+				OIDCConfig: o.OIDCConfig,
+			},
+			RedisOptions: o.Redis,
+		}
+		dockerHandler.HandleSetPassword()
 	})
 
 	bindAddress := "127.0.0.1:5100"

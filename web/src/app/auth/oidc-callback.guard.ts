@@ -20,7 +20,7 @@ export class OidcCallbackGuard implements CanActivate {
       client_id: environment.oidcClientId,
       redirect_uri: environment.oidcRedirectUrl,
       response_mode: 'query',
-      scope: 'openid',
+      scope: 'openid profile email',
     });
 
     // request id_token (finish code flow)
