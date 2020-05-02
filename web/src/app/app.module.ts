@@ -14,6 +14,8 @@ import { ListComponent } from './components/list/list.component';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { ListDirective } from './components/list/list.directive';
 import { AddgroupComponent } from './components/addgroup/addgroup.component';
+import { RepositoryDetailComponent } from './views/repository-detail/repository-detail.component';
+import { ListDetailsComponent } from './components/list-details/list-details.component';
 
 @NgModule({
   declarations: [
@@ -27,7 +29,9 @@ import { AddgroupComponent } from './components/addgroup/addgroup.component';
     GroupsComponent,
     ListComponent,
     ListDirective,
-    AddgroupComponent
+    AddgroupComponent,
+    RepositoryDetailComponent,
+    ListDetailsComponent
   ],
   imports: [
     BrowserModule,

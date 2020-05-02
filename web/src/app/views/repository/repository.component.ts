@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { GroupModel } from 'src/app/models/group.model';
 import { faShip } from '@fortawesome/free-solid-svg-icons';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-repository',
@@ -26,6 +27,7 @@ export class RepositoryComponent implements OnInit {
           },
           {
             text: "harbour-iam",
+            details: [{title:"properties", group: {listItems: [{text: "lol"}]}}],
           },
         ]
       },
@@ -49,5 +51,4 @@ export class RepositoryComponent implements OnInit {
 
   ngOnInit(): void {
   }
-
 }

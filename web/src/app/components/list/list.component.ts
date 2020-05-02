@@ -3,6 +3,7 @@ import { ListModel } from 'src/app/models/list.model';
 import { ListDirective } from './list.directive';
 import { ListContentModel } from 'src/app/models/list-item';
 import { NavbarComponent } from '../navbar/navbar.component';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-list',
@@ -20,7 +21,7 @@ export class ListComponent implements OnInit {
   @ViewChild('colorblock') colorblock;
   @ViewChild(ListDirective, {static: true}) listHost: ListDirective;
 
-  constructor(private componentFactoryResolver: ComponentFactoryResolver) { 
+  constructor(private router: Router,private componentFactoryResolver: ComponentFactoryResolver) { 
   }
 
   ngOnInit(): void {
@@ -92,5 +93,10 @@ export class ListComponent implements OnInit {
       }, 50);
     }, 0);
 
+  }
+
+  gotoDetails() {
+    if(this.listData.details)
+    this.router.navigate(['/repository/', 0]);
   }
 }
