@@ -2,7 +2,7 @@ package handler
 
 import (
 	"encoding/base64"
-	"github.com/harbourrocks/harbour/pkg/harbourscm/redis"
+	redis2 "github.com/harbourrocks/harbour/pkg/harbouriam/redis"
 	"github.com/harbourrocks/harbour/pkg/httphandler"
 	"github.com/harbourrocks/harbour/pkg/redisconfig"
 	l "github.com/sirupsen/logrus"
@@ -53,7 +53,7 @@ func (h DockerHandler) HandleSetPassword() {
 
 	// save to redis as 'docker-password'
 	client := redisconfig.OpenClient(h.RedisOptions)
-	if err := client.HSet(redis.IamUserKey(idToken.Subject), "docker-password", passwordBase64).Err(); err != nil {
+	if err := client.HSet(redis2.IamUserKey(idToken.Subject), "docker-password", passwordBase64).Err(); err != nil {
 		l.WithError(err).Error("Failed to save docker-password")
 		h.Response.WriteHeader(http.StatusInternalServerError)
 		return

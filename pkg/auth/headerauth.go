@@ -26,8 +26,8 @@ func HeaderAuth(request *http.Request, oidcConfig OIDCConfig) (token *oidc.IDTok
 	// extract actual token
 	tokenString := authorizationHeader[7:]
 
-	// validate token string, error is logged in AuthJwt
-	token, err = JwtAuth(tokenString, oidcConfig)
+	// validate token string
+	token, err = JwtAuth(tokenString, oidcConfig) // error is logged in AuthJwt
 
 	return
 }

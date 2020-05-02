@@ -12,7 +12,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// RunIAMServer runns the IAM server application
+// RunIAMServer runs the IAM server application
 func RunIAMServer(o *configuration.Options) error {
 	logrus.Info("Started Harbour IAM server")
 
@@ -28,11 +28,7 @@ func RunIAMServer(o *configuration.Options) error {
 		logrus.Trace(r)
 		// AuthHandler
 		authHandler := handler.AuthHandler{
-			HttpHandler: httphandler.HttpHandler{
-				Request:    r,
-				Response:   w,
-				OIDCConfig: o.OIDCConfig,
-			},
+			HttpHandler:  httphandler.NewHttpHandler(r, w, o.OIDCConfig),
 			RedisOptions: o.Redis,
 		}
 		authHandler.Test()
@@ -41,30 +37,19 @@ func RunIAMServer(o *configuration.Options) error {
 	http.HandleFunc("/refresh", func(w http.ResponseWriter, r *http.Request) {
 		logrus.Trace(r)
 		// AuthHandler
-		profileHandler := handler.ProfileHandler{
-			HttpHandler: httphandler.HttpHandler{
-				Request:    r,
-				Response:   w,
-				OIDCConfig: o.OIDCConfig,
-			},
+		handler.ProfileHandler{
+			HttpHandler:  httphandler.NewHttpHandler(r, w, o.OIDCConfig),
 			RedisOptions: o.Redis,
-		}
-		profileHandler.HandleRefreshProfile()
+		}.HandleRefreshProfile()
 	})
 
 	// DockerHandler
-
 	http.HandleFunc("/docker/password", func(w http.ResponseWriter, r *http.Request) {
 		logrus.Trace(r)
-		dockerHandler := handler.DockerHandler{
-			HttpHandler: httphandler.HttpHandler{
-				Request:    r,
-				Response:   w,
-				OIDCConfig: o.OIDCConfig,
-			},
+		handler.DockerHandler{
+			HttpHandler:  httphandler.NewHttpHandler(r, w, o.OIDCConfig),
 			RedisOptions: o.Redis,
-		}
-		dockerHandler.HandleSetPassword()
+		}.HandleSetPassword()
 	})
 
 	bindAddress := "127.0.0.1:5100"

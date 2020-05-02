@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"github.com/harbourrocks/harbour/pkg/harbourscm/redis"
+	redis2 "github.com/harbourrocks/harbour/pkg/harbouriam/redis"
 	"github.com/harbourrocks/harbour/pkg/httphandler"
 	"github.com/harbourrocks/harbour/pkg/redisconfig"
 	l "github.com/sirupsen/logrus"
@@ -24,7 +24,7 @@ func (h ProfileHandler) HandleRefreshProfile() {
 
 	// save to redis as 'docker-password'
 	client := redisconfig.OpenClient(h.RedisOptions)
-	err = client.HSet(redis.IamUserKey(idToken.Subject),
+	err = client.HSet(redis2.IamUserKey(idToken.Subject),
 		"email", idToken.Email,
 		"preferred_username", idToken.PreferredUsername,
 		"name", idToken.Name).Err()
