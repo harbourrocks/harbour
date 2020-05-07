@@ -1,26 +1,30 @@
 package handler
 
 import (
-	"github.com/harbourrocks/harbour/pkg/harbourscm/configuration"
-	"github.com/harbourrocks/harbour/pkg/httphandler"
+	"github.com/harbourrocks/harbour/pkg/httphandler/traits"
+	"github.com/harbourrocks/harbour/pkg/redisconfig"
 	l "github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
 	"time"
 )
 
-type GithubRepositoryHandler struct {
-	httphandler.HttpHandler
-	Config *configuration.Options
+type GithubRepositoryModel struct {
+	traits.HttpModel
+	redisconfig.RedisModel
 }
 
-func (h *GithubRepositoryHandler) Handle() {
-	appId, _ := strconv.Atoi(h.Request.URL.Query().Get("appId"))
+func (h *GithubRepositoryModel) Handle() {
+	r := h.GetRequest()
+	w := h.GetResponse()
+	redisConfig := h.GetRedisConfig()
+
+	appId, _ := strconv.Atoi(r.URL.Query().Get("appId"))
 
 	// generate a access token to make sure everything works
-	if token, err := GenerateGithubToken(appId, time.Minute*1, h.Config.Redis); err != nil {
+	if token, err := GenerateGithubToken(appId, time.Minute*1, redisConfig); err != nil {
 		l.WithError(err).Errorf("Failed to obtain access token")
-		h.Response.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	} else {
 		l.Tracef("AccessToken: %s", token)

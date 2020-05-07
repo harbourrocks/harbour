@@ -8,7 +8,7 @@ import (
 )
 
 // Get issues a GET request against the url.
-//The response is unmarshaled into response
+//The response is unmarshalled into response
 func Get(url string, response interface{}) (resp *http.Response, err error) {
 	resp, err = http.Get(url)
 	if err != nil {
@@ -26,8 +26,8 @@ func Get(url string, response interface{}) (resp *http.Response, err error) {
 
 // Post issues a POST request against the url.
 // The POST payload is specified by body. If body is nil then no body is sent at all.
-// The response is unmarshaled into response.
-func Post(url string, response interface{}, body interface{}) (resp *http.Response, err error) {
+// The response is unmarshalled into response.
+func Post(url string, response interface{}, _ interface{}) (resp *http.Response, err error) {
 	resp, err = http.Post(url, "application/json", nil)
 	if err != nil {
 		l.

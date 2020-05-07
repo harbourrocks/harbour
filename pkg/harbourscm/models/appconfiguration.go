@@ -1,4 +1,4 @@
-package handler
+package models
 
 // AppConfiguration is the app configuration from github
 type AppConfiguration struct {

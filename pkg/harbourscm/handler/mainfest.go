@@ -3,32 +3,32 @@ package handler
 import (
 	"fmt"
 	"github.com/harbourrocks/harbour/pkg/harbourscm/configuration"
-	"github.com/harbourrocks/harbour/pkg/httphandler"
+	"github.com/harbourrocks/harbour/pkg/harbourscm/models"
+	"github.com/harbourrocks/harbour/pkg/httphandler/traits"
 )
 
-type ManifestHandler struct {
-	httphandler.HttpHandler
-	Config *configuration.Options
+type ManifestModel struct {
+	traits.HttpModel
 }
 
-func (h *ManifestHandler) Handle() {
-	hostUrl := h.Config.HostUrl
+func (h *ManifestModel) Handle(config configuration.Options) {
+	hostUrl := config.HostUrl
 
 	redirectUrl := fmt.Sprintf("%s/scm/github/app", hostUrl.String())
 	webhookUrl := fmt.Sprintf("%s/scm/github/hooks", hostUrl.String())
 
-	manifest := GithubManifest{
+	manifest := models.GithubManifest{
 		Name:          "harbour.rocks",
 		Url:           hostUrl.String(),
 		RedirectUrl:   redirectUrl,
-		DefaultEvents: []GithubEventType{Push},
-		HookAttributes: HookAttributes{
+		DefaultEvents: []models.GithubEventType{models.Push},
+		HookAttributes: models.HookAttributes{
 			Url:    webhookUrl,
 			Active: true,
 		},
-		DefaultPermissions: DefaultPermissions{
-			Contents: Write,
-			Metadata: Read,
+		DefaultPermissions: models.DefaultPermissions{
+			Contents: models.Write,
+			Metadata: models.Read,
 		},
 	}
 

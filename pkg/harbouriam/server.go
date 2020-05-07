@@ -5,6 +5,8 @@ import (
 	"github.com/harbourrocks/harbour/pkg/harbouriam/configuration"
 	"github.com/harbourrocks/harbour/pkg/harbouriam/handler"
 	"github.com/harbourrocks/harbour/pkg/httphandler"
+	"github.com/harbourrocks/harbour/pkg/httphandler/traits"
+	"github.com/harbourrocks/harbour/pkg/redisconfig"
 	"net/http"
 	"net/url"
 	"path"
@@ -26,30 +28,36 @@ func RunIAMServer(o *configuration.Options) error {
 
 	http.HandleFunc("/auth/test", func(w http.ResponseWriter, r *http.Request) {
 		logrus.Trace(r)
-		// AuthHandler
-		authHandler := handler.AuthHandler{
-			HttpHandler:  httphandler.NewHttpHandler(r, w, o.OIDCConfig),
-			RedisOptions: o.Redis,
-		}
-		authHandler.Test()
+		model := handler.AuthModel{}
+		traits.AddHttp(&model, r, w, o.OIDCConfig)
+		traits.AddIdToken(&model)
+
+		model.Handle()
 	})
 
 	http.HandleFunc("/refresh", func(w http.ResponseWriter, r *http.Request) {
 		logrus.Trace(r)
-		// AuthHandler
-		handler.ProfileHandler{
-			HttpHandler:  httphandler.NewHttpHandler(r, w, o.OIDCConfig),
-			RedisOptions: o.Redis,
-		}.HandleRefreshProfile()
+		model := handler.ProfileModel{}
+		traits.AddHttp(&model, r, w, o.OIDCConfig)
+		traits.AddIdToken(&model)
+		redisconfig.AddRedis(&model, o.Redis)
+
+		if err := httphandler.ForceAuthenticated(&model); err != nil {
+			model.Handle()
+		}
 	})
 
 	// DockerHandler
 	http.HandleFunc("/docker/password", func(w http.ResponseWriter, r *http.Request) {
 		logrus.Trace(r)
-		handler.DockerHandler{
-			HttpHandler:  httphandler.NewHttpHandler(r, w, o.OIDCConfig),
-			RedisOptions: o.Redis,
-		}.HandleSetPassword()
+		model := handler.DockerModel{}
+		traits.AddHttp(&model, r, w, o.OIDCConfig)
+		traits.AddIdToken(&model)
+		redisconfig.AddRedis(&model, o.Redis)
+
+		if err := httphandler.ForceAuthenticated(&model); err != nil {
+			model.Handle()
+		}
 	})
 
 	bindAddress := "127.0.0.1:5100"

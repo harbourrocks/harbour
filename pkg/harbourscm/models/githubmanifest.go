@@ -1,4 +1,4 @@
-package handler
+package models
 
 type GithubManifest struct {
 	Name               string             `json:"name"`
@@ -27,6 +27,7 @@ const (
 
 type GithubPermissionType string
 
+//noinspection GoUnusedConst
 const (
 	NoAccess GithubPermissionType = "no access"
 	Read     GithubPermissionType = "read-only"

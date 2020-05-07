@@ -3,34 +3,33 @@ package handler
 import (
 	"encoding/base64"
 	redis2 "github.com/harbourrocks/harbour/pkg/harbouriam/redis"
-	"github.com/harbourrocks/harbour/pkg/httphandler"
+	"github.com/harbourrocks/harbour/pkg/httphandler/traits"
 	"github.com/harbourrocks/harbour/pkg/redisconfig"
 	l "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
 )
 
-type DockerHandler struct {
-	httphandler.HttpHandler
-	redisconfig.RedisOptions
-}
-
 type DockerSetPassword struct {
 	Password string `json:"password"`
 }
 
-func (h DockerHandler) HandleSetPassword() {
+// DockerModel is specific for one handler
+type DockerModel struct {
+	traits.HttpModel
+	traits.IdTokenModel
+	redisconfig.RedisModel
+}
+
+func (h DockerModel) Handle() {
+	w := h.GetResponse()
+	redisConfig := h.GetRedisConfig()
+	idToken := h.GetToken()
+
 	var model DockerSetPassword
 	if err := h.ReadRequest(&model); err != nil {
-		h.Response.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
 		return // error logged in ReadRequest
-	}
-
-	// extract userId from token
-	idToken, err := h.ExtractUser()
-	if err != nil {
-		h.Response.WriteHeader(http.StatusUnauthorized)
-		return
 	}
 
 	// validate password length, min 5
@@ -43,7 +42,7 @@ func (h DockerHandler) HandleSetPassword() {
 	passwordHashed, err := bcrypt.GenerateFromPassword([]byte(model.Password), 12)
 	if err != nil {
 		l.WithError(err).Error("Failed to hash password")
-		h.Response.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -52,12 +51,12 @@ func (h DockerHandler) HandleSetPassword() {
 	l.Tracef("Hashed password %s", passwordBase64)
 
 	// save to redis as 'docker-password'
-	client := redisconfig.OpenClient(h.RedisOptions)
+	client := redisconfig.OpenClient(redisConfig)
 	if err := client.HSet(redis2.IamUserKey(idToken.Subject), "docker-password", passwordBase64).Err(); err != nil {
 		l.WithError(err).Error("Failed to save docker-password")
-		h.Response.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	h.Response.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusOK)
 }

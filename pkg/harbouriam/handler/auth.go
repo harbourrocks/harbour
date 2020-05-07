@@ -2,25 +2,27 @@ package handler
 
 import (
 	"github.com/harbourrocks/harbour/pkg/auth"
-	"github.com/harbourrocks/harbour/pkg/httphandler"
-	"github.com/harbourrocks/harbour/pkg/redisconfig"
+	"github.com/harbourrocks/harbour/pkg/httphandler/traits"
 	"net/http"
 )
 
-// AuthHandler handles the authentication of an user
-type AuthHandler struct {
-	httphandler.HttpHandler
-	redisconfig.RedisOptions
+// AuthModel handles the authentication of an user
+type AuthModel struct {
+	traits.HttpModel
+	traits.IdTokenModel
 }
 
-// Test can be used to test authentication
+// Handle can be used to test authentication
 // 401 is returned if authentication failed, 200 otherwise
-func (a AuthHandler) Test() {
-	_, err := auth.HeaderAuth(a.Request, a.OIDCConfig)
+func (a AuthModel) Handle() {
+	r := a.GetRequest()
+	w := a.GetResponse()
+
+	_, err := auth.HeaderAuth(r, a.GetOidcConfig())
 
 	if err != nil {
-		a.Response.WriteHeader(http.StatusUnauthorized)
+		w.WriteHeader(http.StatusUnauthorized)
 	} else {
-		a.Response.WriteHeader(http.StatusOK)
+		w.WriteHeader(http.StatusOK)
 	}
 }

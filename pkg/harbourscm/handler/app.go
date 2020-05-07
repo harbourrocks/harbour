@@ -4,24 +4,29 @@ import (
 	"fmt"
 	"github.com/harbourrocks/harbour/pkg/apiclient"
 	"github.com/harbourrocks/harbour/pkg/harbourscm/configuration"
+	"github.com/harbourrocks/harbour/pkg/harbourscm/models"
 	"github.com/harbourrocks/harbour/pkg/harbourscm/redis"
-	"github.com/harbourrocks/harbour/pkg/httphandler"
+	"github.com/harbourrocks/harbour/pkg/httphandler/traits"
 	"github.com/harbourrocks/harbour/pkg/redisconfig"
 	l "github.com/sirupsen/logrus"
 	"net/http"
 	"time"
 )
 
-type AppHandler struct {
-	httphandler.HttpHandler
-	Config *configuration.Options
+type AppModel struct {
+	traits.HttpModel
+	redisconfig.RedisModel
 }
 
-func (h *AppHandler) Handle() {
-	code := h.Request.URL.Query().Get("code")
+func (h *AppModel) Handle(config configuration.Options) {
+	w := h.GetResponse()
+	r := h.GetRequest()
+	redisConfig := h.GetRedisConfig()
+
+	code := r.URL.Query().Get("code")
 	if code == "" {
 		l.Warningf("Invalid code from Github", code)
-		h.Response.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -30,16 +35,16 @@ func (h *AppHandler) Handle() {
 	// retrieve github app configuration
 	// this also returns the private key of the app which is required to build access tokens
 	conversionUrl := fmt.Sprintf("https://api.github.com/app-manifests/%s/conversions", code)
-	appConfiguration := AppConfiguration{}
+	appConfiguration := models.AppConfiguration{}
 	_, err := apiclient.Post(conversionUrl, &appConfiguration, nil)
 	if err != nil {
 		// error was already logged in api client
-		h.Response.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	// save app configuration to redis
-	client := redisconfig.OpenClient(h.Config.Redis)
+	client := redisconfig.OpenClient(redisConfig)
 	err = client.HSet(redis.GithubAppKey(appConfiguration.Id),
 		"clientSecret", appConfiguration.ClientSecret,
 		"clientId", appConfiguration.ClientId,
@@ -49,21 +54,21 @@ func (h *AppHandler) Handle() {
 		"id", appConfiguration.Id).Err()
 	if err != nil {
 		l.WithError(err).Error("Failed to persist github app config")
-		h.Response.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	// generate a access token to make sure everything works
-	if token, err := GenerateGithubToken(appConfiguration.Id, time.Minute*1, h.Config.Redis); err != nil {
+	if token, err := GenerateGithubToken(appConfiguration.Id, time.Minute*1, redisConfig); err != nil {
 		l.WithError(err).Errorf("Failed to obtain access token")
-		h.Response.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	} else {
 		l.Tracef("AccessToken: %s", token)
 	}
 
 	// setup redirect headers
-	redirectUrl := fmt.Sprintf("%s/settings/vsc?app=github&id=%d", h.Config.HostUrl, appConfiguration.Id)
-	h.Response.Header().Set("Location", redirectUrl)
-	h.Response.WriteHeader(http.StatusTemporaryRedirect)
+	redirectUrl := fmt.Sprintf("%s/settings/vsc?app=github&id=%d", config.HostUrl, appConfiguration.Id)
+	w.Header().Set("Location", redirectUrl)
+	w.WriteHeader(http.StatusTemporaryRedirect)
 }

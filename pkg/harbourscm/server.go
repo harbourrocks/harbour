@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"github.com/harbourrocks/harbour/pkg/harbourscm/configuration"
 	"github.com/harbourrocks/harbour/pkg/harbourscm/handler"
-	"github.com/harbourrocks/harbour/pkg/httphandler"
+	"github.com/harbourrocks/harbour/pkg/httphandler/traits"
+	"github.com/harbourrocks/harbour/pkg/redisconfig"
 	"github.com/sirupsen/logrus"
 	"net/http"
 )
@@ -20,29 +21,20 @@ func RunSCMServer(o *configuration.Options) error {
 	http.HandleFunc("/scm/github/manifest", func(w http.ResponseWriter, r *http.Request) {
 		logrus.Trace(r)
 
-		h := handler.ManifestHandler{
-			Config: o,
-			HttpHandler: httphandler.HttpHandler{
-				Request:  r,
-				Response: w,
-			},
-		}
+		model := handler.ManifestModel{}
+		traits.AddHttp(&model, r, w, o.OIDCConfig)
 
-		h.Handle()
+		model.Handle(*o)
 	})
 
 	http.HandleFunc("/scm/github/app", func(w http.ResponseWriter, r *http.Request) {
 		logrus.Trace(r)
 
-		h := handler.AppHandler{
-			Config: o,
-			HttpHandler: httphandler.HttpHandler{
-				Request:  r,
-				Response: w,
-			},
-		}
+		model := handler.AppModel{}
+		traits.AddHttp(&model, r, w, o.OIDCConfig)
+		redisconfig.AddRedis(&model, o.Redis)
 
-		h.Handle()
+		model.Handle(*o)
 	})
 
 	bindAddress := "0.0.0.0:5200"
