@@ -55,7 +55,7 @@ export class ListComponent implements OnInit {
     if(!this.listData.content) return;
     this.unloadComponent();
     this.isHovered =false;
-    this.updateHeight();
+    this.updateHeight(true);
     this.sendHoveredEvent();
   }
 
@@ -63,20 +63,21 @@ export class ListComponent implements OnInit {
     this.hovered.emit(!this.groupHovered);
   }
 
-  updateHeight(delay = 200) {
+  updateHeight(removeHeight=false) {
     const el = this.expandable.nativeElement;
 
     setTimeout(() => {
 
       const prevHeight = el.style.height;
       el.style.height = 'auto';
-      const newHeight = el.scrollHeight + 'px';
+      let newHeight = el.scrollHeight + 'px';
       el.style.height = prevHeight;
 
       setTimeout(() => {
+        if(removeHeight) newHeight = "";
         el.style.height = newHeight;
       }, 50);
-    }, delay);
+    }, 200);
   }
 
   changeBarWidth(hovered: boolean) {
