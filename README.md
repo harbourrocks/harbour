@@ -27,6 +27,15 @@ You can access redis for debugging purposes by the redis-cli using the following
 
 `./scripts/redis-cli.sh`
 
+# Docker Registry API
+
+* List all repositories
+  * /v2/_catalog
+* List all tags (images inside a repository)
+  * /v2/<name>/tags/list
+  
+https://docs.docker.com/registry/spec/api/#detail
+
 # Licenses
 
 ## Font Awesome
