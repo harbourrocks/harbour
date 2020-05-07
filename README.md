@@ -26,7 +26,7 @@ $ docker-compose -version
 docker-compose version 1.25.4, build 8d51620a
 ```
 
-* You need a redis database for storage. Simply setup the redis by executing this script: [scripts/run-redis.sh], or use your existing local one.
+* You need a redis database for storage. Simply setup the redis by executing this script: [scripts/run-redis.sh](scripts/run-redis.sh), or use your existing local one.
 
   *Script only works with docker installed before.*
 
@@ -36,7 +36,7 @@ docker-compose version 1.25.4, build 8d51620a
 
 * Now you should be able to run the several services of harbour from your IntelliJ by selecting the configuration and hitting the run button.
 
-For further information see [CONTRIBUTING.md]
+For further information see [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## <img style="float: left; margin-right: 10px;" src="https://redis.io/images/redis-small.png"> Redis
 
