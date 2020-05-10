@@ -5,13 +5,13 @@ services:
     image: registry:2
     ports:
       - 5000:5000
-#    environment:
-#      REGISTRY_HTTP_TLS_CERTIFICATE: /certs/domain.crt
-#      REGISTRY_HTTP_TLS_KEY: /certs/domain.key
-#      REGISTRY_AUTH: htpasswd
-#      REGISTRY_AUTH_HTPASSWD_PATH: /auth/htpasswd
-#      REGISTRY_AUTH_HTPASSWD_REALM: Registry Realm
-#    volumes:
+    environment:
+      REGISTRY_AUTH_TOKEN_AUTOREDIRECT: "false"
+      REGISTRY_AUTH_TOKEN_REALM: http://192.168.1.110:5100/docker/auth/token
+      REGISTRY_AUTH_TOKEN_SERVICE: http://localhost:5000
+      REGISTRY_AUTH_TOKEN_ISSUER: http://192.168.1.110:5100
+      REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE: /certs/registry-auth.crt
+    volumes:
+      - ./registry-auth.crt:/certs/registry-auth.crt
 #      - /path/data:/var/lib/registry
-#      - /path/certs:/certs
 #      - /path/auth:/auth

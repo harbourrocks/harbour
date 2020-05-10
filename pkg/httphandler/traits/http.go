@@ -10,6 +10,7 @@ import (
 
 // RequestTrait returns a pointer to the current request object
 type HttpTrait interface {
+	GetQueryParam(string) string
 	GetRequest() *http.Request
 	GetResponse() http.ResponseWriter
 	GetOidcConfig() auth.OIDCConfig
@@ -21,6 +22,10 @@ type HttpModel struct {
 	request    *http.Request
 	response   http.ResponseWriter
 	oidcConfig auth.OIDCConfig
+}
+
+func (m HttpModel) GetQueryParam(key string) string {
+	return m.request.URL.Query().Get(key)
 }
 
 func (m HttpModel) GetRequest() *http.Request {
@@ -52,6 +57,10 @@ func (m *HttpModel) WriteResponse(v interface{}) (err error) {
 		data, err = json.MarshalIndent(v, "", "  ")
 	} else {
 		data, err = json.Marshal(v)
+	}
+
+	if l.IsLevelEnabled(l.TraceLevel) {
+		l.Trace(string(data))
 	}
 
 	if err != nil {

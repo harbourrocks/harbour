@@ -14,14 +14,14 @@ type DockerSetPassword struct {
 	Password string `json:"password"`
 }
 
-// DockerModel is specific for one handler
-type DockerModel struct {
+// DockerPasswordModel is specific for one handler
+type DockerPasswordModel struct {
 	traits.HttpModel
 	traits.IdTokenModel
 	redisconfig.RedisModel
 }
 
-func (h DockerModel) Handle() {
+func (h DockerPasswordModel) Handle() {
 	w := h.GetResponse()
 	redisConfig := h.GetRedisConfig()
 	idToken := h.GetToken()

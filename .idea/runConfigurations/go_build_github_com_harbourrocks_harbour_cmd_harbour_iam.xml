@@ -7,6 +7,11 @@
       <env name="OIDC_DISCOVERY_URL" value="https://login.microsoftonline.com/07a987a0-3eef-42a9-a7d6-53698899fcf2/v2.0" />
       <env name="IAM_BASE_URL" value="http://localhost:5100" />
       <env name="LOG_LEVEL" value="trace" />
+      <env name="DOCKER_TOKEN_SIGNING_KEY" value="./deployments/registry/registry-auth.key" />
+      <env name="DOCKER_VALID_SERVICE" value="http://localhost:5000" />
+      <env name="DOCKER_TOKEN_ISSUER" value="http://192.168.1.110:5100" />
+      <env name="DOCKER_TOKEN_LIFETIME" value="3600s" />
+      <env name="DOCKER_TOKEN_CERTIFICATE" value="./deployments/registry/registry-auth.crt" />
     </envs>
     <kind value="PACKAGE" />
     <filePath value="$PROJECT_DIR$/cmd/harbour-iam/main.go" />

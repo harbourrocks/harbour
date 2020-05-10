@@ -42,7 +42,7 @@ func RunIAMServer(o *configuration.Options) error {
 		traits.AddIdToken(&model)
 		redisconfig.AddRedis(&model, o.Redis)
 
-		if err := httphandler.ForceAuthenticated(&model); err != nil {
+		if err := httphandler.ForceAuthenticated(&model); err == nil {
 			model.Handle()
 		}
 	})
@@ -50,18 +50,29 @@ func RunIAMServer(o *configuration.Options) error {
 	// DockerHandler
 	http.HandleFunc("/docker/password", func(w http.ResponseWriter, r *http.Request) {
 		logrus.Trace(r)
-		model := handler.DockerModel{}
+		model := handler.DockerPasswordModel{}
 		traits.AddHttp(&model, r, w, o.OIDCConfig)
 		traits.AddIdToken(&model)
 		redisconfig.AddRedis(&model, o.Redis)
 
-		if err := httphandler.ForceAuthenticated(&model); err != nil {
+		if err := httphandler.ForceAuthenticated(&model); err == nil {
 			model.Handle()
 		}
 	})
 
-	bindAddress := "127.0.0.1:5100"
-	logrus.Info(fmt.Sprintf("Listening on httphandler://%s/", bindAddress))
+	// DockerHandler
+	http.HandleFunc("/docker/auth/token", func(w http.ResponseWriter, r *http.Request) {
+		logrus.Trace(r)
+		model := handler.DockerTokenModel{}
+		traits.AddHttp(&model, r, w, o.OIDCConfig)
+		configuration.AddIamConfig(&model, *o)
+		redisconfig.AddRedis(&model, o.Redis)
+
+		model.Handle()
+	})
+
+	bindAddress := "0.0.0.0:5100"
+	logrus.Info(fmt.Sprintf("Listening on http://%s/", bindAddress))
 
 	err = http.ListenAndServe(bindAddress, nil)
 	logrus.Fatal(err)
