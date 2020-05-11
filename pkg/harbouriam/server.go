@@ -2,6 +2,7 @@ package harbouriam
 
 import (
 	"fmt"
+	"github.com/harbourrocks/harbour/pkg/context"
 	"github.com/harbourrocks/harbour/pkg/harbouriam/configuration"
 	"github.com/harbourrocks/harbour/pkg/harbouriam/handler"
 	"github.com/harbourrocks/harbour/pkg/httphandler"
@@ -67,6 +68,7 @@ func RunIAMServer(o *configuration.Options) error {
 		traits.AddHttp(&model, r, w, o.OIDCConfig)
 		configuration.AddIamConfig(&model, *o)
 		redisconfig.AddRedis(&model, o.Redis)
+		context.AddHRock(&model)
 
 		model.Handle()
 	})

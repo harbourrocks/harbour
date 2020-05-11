@@ -1,24 +1,32 @@
 package handler
 
 import (
-	"crypto/x509"
 	"encoding/base64"
-	"encoding/pem"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/go-redis/redis/v7"
 	"github.com/google/uuid"
+	"github.com/harbourrocks/harbour/pkg/context"
+	"github.com/harbourrocks/harbour/pkg/cryptography"
 	"github.com/harbourrocks/harbour/pkg/harbouriam/configuration"
 	redis2 "github.com/harbourrocks/harbour/pkg/harbouriam/redis"
 	"github.com/harbourrocks/harbour/pkg/httphandler/traits"
 	"github.com/harbourrocks/harbour/pkg/redisconfig"
 	l "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
-	"io/ioutil"
 	"net/http"
 	"strings"
 	"time"
 )
 
+// DockerTokenResponse is the response model of the token request
+type DockerTokenResponse struct {
+	Token       string `json:"token"`
+	AccessToken string `json:"access_token"`
+	ExpiresIn   int64  `json:"expires_in"`
+	IssuedAt    string `json:"issued_at"`
+}
+
+// DockerScope is part of the claims and represents allowed actions
 type DockerScope struct {
 	Type    string   `json:"type"`
 	Name    string   `json:"name"`
@@ -30,9 +38,16 @@ type DockerTokenModel struct {
 	traits.HttpModel
 	redisconfig.RedisModel
 	configuration.IamModel
+	context.HRockModel
 }
 
-func DockerScopeFromString(scope string) DockerScope {
+var supportedScopes = map[string]struct{}{
+	"pull": {},
+	"push": {},
+}
+
+// dockerScopeFromString converts a scope string into a DockerScope
+func dockerScopeFromString(scope string) DockerScope {
 	split := strings.Split(scope, ":")
 	resourceType := split[0]
 	var resourceName, actions string
@@ -52,18 +67,51 @@ func DockerScopeFromString(scope string) DockerScope {
 	}
 }
 
-func DockerScopesFromString(scopes string) []DockerScope {
+// dockerScopesFromString converts space separated DockerScope into an array of DockerScopes
+func dockerScopesFromString(scopes string) []DockerScope {
 	split := strings.Split(scopes, " ")
 	r := make([]DockerScope, len(split))
 	for i, scope := range split {
-		r[i] = DockerScopeFromString(scope)
+		r[i] = dockerScopeFromString(scope)
 	}
 	return r
+}
+
+// validateScopeOk checks if the requested scope is okay
+func validateScopeOk(scope DockerScope) bool {
+	for _, action := range scope.Actions {
+		if _, ok := supportedScopes[action]; !ok {
+			l.WithField("Action", action).Warn("Action not supported")
+			return false
+		}
+	}
+
+	return true
+}
+
+// resolveUserIdFromUsername returns the userId (harbour userId) from a username (via redis lookup)
+func (h DockerTokenModel) resolveUserIdFromUsername(username string) (userId string, err error) {
+	log := h.GetHRock().L
+	client := redisconfig.OpenClient(h.GetRedisConfig())
+
+	userIdCmd := client.Get(redis2.IamUserName(username))
+	if userIdCmd.Err() == redis.Nil {
+		log.WithField("username", username).Warn("Username not found")
+		return
+	} else if userIdCmd.Err() != nil {
+		log.WithError(userIdCmd.Err()).Error("Failed to load user identification")
+		return
+	} else {
+		userId = userIdCmd.Val()
+	}
+
+	return
 }
 
 func (h DockerTokenModel) Handle() {
 	w := h.GetResponse()
 	redisConfig := h.GetRedisConfig()
+	log := h.GetHRock().L
 
 	qAccount := h.GetQueryParam("account")
 	qClientId := h.GetQueryParam("client_id")
@@ -71,9 +119,17 @@ func (h DockerTokenModel) Handle() {
 	qService := h.GetQueryParam("service")
 	qScope := h.GetQueryParam("scope")
 
-	dockerScopes := DockerScopesFromString(qScope)
+	dockerScopes := dockerScopesFromString(qScope)
 
-	l.
+	// validate scopes
+	for _, scope := range dockerScopes {
+		if !validateScopeOk(scope) {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+	}
+
+	log.
 		WithField("account", qAccount).
 		WithField("service", qService).
 		WithField("clientId", qClientId).
@@ -83,36 +139,30 @@ func (h DockerTokenModel) Handle() {
 
 	client := redisconfig.OpenClient(redisConfig)
 
-	userNameKey := redis2.IamUserName(qAccount)
-	userIdCmd := client.Get(userNameKey)
-	if userIdCmd.Err() == redis.Nil {
-		// user was not found
-		l.WithField("account", qAccount).Warn("Username not found")
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	} else if userIdCmd.Err() != nil {
-		// redis error occurred
-		l.WithError(userIdCmd.Err()).WithField("account", qAccount).Error("Failed to load user identification")
+	userId, err := h.resolveUserIdFromUsername(qAccount)
+	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		return // error logged in resolveUserIdFromUsername
+	} else if userId == "" {
+		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
-	userId := userIdCmd.Val()
-	l.WithField("account", qAccount).WithField("userId", userId).Info("Docker authentication attempt")
+	log.WithField("userId", userId).Info("Docker authentication attempt")
 
 	dockerPasswordHash, err := client.HGet(redis2.IamUserKey(userId), "docker-password").Result()
 	if err != nil {
 		// redis error occurred
-		l.WithError(userIdCmd.Err()).WithField("userId", userId).Error("Failed to load docker password")
+		log.WithError(err).Error("Failed to load docker password")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	l.WithField("userId", userId).WithField("hash", dockerPasswordHash).Trace("Docker Password hash found")
+	log.WithField("hash", dockerPasswordHash).Trace("Docker Password hash found")
 
 	dockerPasswordDecoded, err := base64.StdEncoding.DecodeString(dockerPasswordHash)
 	if err != nil {
-		l.WithError(err).WithField("userId", userId).Error("Failed to decode docker password")
+		log.WithError(err).Error("Failed to decode docker password")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -120,28 +170,28 @@ func (h DockerTokenModel) Handle() {
 	// get and validate authorization header value
 	var sentUsername, sentPassword string
 	authHeaderValue := h.GetRequest().Header.Get("Authorization")
-	l.WithField("AuthorizationHeader", authHeaderValue).Trace()
+	log.WithField("AuthorizationHeader", authHeaderValue).Trace("Got authorization header")
 	if len(authHeaderValue) < len("Basic ") {
-		l.Warn("AuthorizationHeader value too short")
+		log.Warn("AuthorizationHeader value too short")
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	} else {
 		authHeaderValue = strings.TrimPrefix(authHeaderValue, "Basic ")
-		l.WithField("AuthorizationHeader", authHeaderValue).Trace("Header trimmed")
+		log.WithField("AuthorizationHeader", authHeaderValue).Trace("Authorization header trimmed")
 
 		bytes, err := base64.StdEncoding.DecodeString(authHeaderValue)
 		if err != nil {
-			l.WithError(err).Warn("Failed to decode authentication header")
+			log.WithError(err).Warn("Failed to decode authentication header")
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
 		authHeaderValue := string(bytes)
-		l.WithField("AuthorizationHeader", authHeaderValue).Trace("Header decoded")
+		log.WithField("AuthorizationHeader", authHeaderValue).Trace("Authorization header decoded")
 
 		split := strings.Split(authHeaderValue, ":")
 		if len(split) != 2 {
-			l.Warn("There has to be exactly one colon for basic authentication")
+			log.Warn("There has to be exactly one colon for basic authentication")
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
@@ -149,16 +199,16 @@ func (h DockerTokenModel) Handle() {
 		sentUsername, sentPassword = split[0], split[1]
 	}
 
-	l.WithField("username", sentUsername).WithField("password", sentPassword).Trace("Extracted username and password")
+	log.WithField("username", sentUsername).WithField("password", sentPassword).Trace("Extracted username and password")
 
 	// compare passwords
 	if bcrypt.CompareHashAndPassword(dockerPasswordDecoded, []byte(sentPassword)) != nil {
-		l.WithField("userId", userId).Warn("Invalid password")
+		log.Warn("Invalid password")
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
-	l.WithField("userId", userId).Info("Authentication successful")
+	log.Info("Authentication successful")
 
 	nowTime := time.Now()
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
@@ -172,68 +222,35 @@ func (h DockerTokenModel) Handle() {
 		"access": dockerScopes,
 	})
 
-	// read certificate file
-	certPath := h.GetIamConfig().Docker.CertificatePath
-	certBytes, err := ioutil.ReadFile(certPath)
+	// generate the x5c signature
+	x5c, err := cryptography.GenerateX5C(h.GetHRock(), h.GetIamConfig().Docker.CertificatePath)
 	if err != nil {
-		l.WithError(err).WithField("certPath", certPath).Error("Failed to open certificate file")
 		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	// generate x5c, we first have to convert from pem to der format, otherwise x509.ParseCertificates throws an error
-	block, _ := pem.Decode(certBytes)
-	certificates, err := x509.ParseCertificates(block.Bytes)
-	if err != nil {
-		l.WithError(err).WithField("certPath", certPath).Error("Failed to open parse certificate file")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	// generate the x5c header which is simple a string array of the certificate chain
-	// each certificate is represented by a base64 encoded string
-	x5c := make([]string, len(certificates))
-	for i, certificate := range certificates {
-		x5c[i] = base64.StdEncoding.EncodeToString(certificate.Raw)
-	}
-
-	// read private key file
-	keyPath := h.GetIamConfig().Docker.SigningKeyPath
-	keyBytes, err := ioutil.ReadFile(keyPath)
-	if err != nil {
-		l.WithError(err).WithField("keyFile", keyPath).Error("Failed to open private key file")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	// convert key bytes to rsa.PrivateKey
-	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(keyBytes)
-	if err != nil {
-		l.WithError(err).Error("Failed to parse private key")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return // error logged in GenerateX5C
 	}
 
 	// add the x5c header
 	token.Header["x5c"] = x5c
 
+	// read private key file
+	privateKey, err := cryptography.ReadPrivateKey(h.GetHRock(), h.GetIamConfig().Docker.SigningKeyPath)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return // error logged in ReadPrivateKey
+	}
+
 	// sign the token with the key
 	signedToken, err := token.SignedString(privateKey)
 	if err != nil {
-		l.WithError(err).Error("Failed to sign token with private key")
+		log.WithError(err).Error("Failed to sign token with private key")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	l.WithField("token", signedToken).Trace("Signed JWT token")
+	log.WithField("token", signedToken).Trace("Signed JWT token")
 
 	w.WriteHeader(http.StatusOK)
-	_ = h.WriteResponse(struct {
-		Token       string `json:"token"`
-		AccessToken string `json:"access_token"`
-		ExpiresIn   int64  `json:"expires_in"`
-		IssuedAt    string `json:"issued_at"`
-	}{
+	_ = h.WriteResponse(DockerTokenResponse{
 		Token:       signedToken,
 		AccessToken: signedToken,
 		ExpiresIn:   int64(h.GetIamConfig().Docker.TokenLifetime.Seconds()),
