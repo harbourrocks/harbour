@@ -16,7 +16,7 @@ func RunBuildServer(o *configuration.Options) error {
 	logrus.Info("Started Harbour build server")
 
 	buildChan := make(chan models.BuildJob)
-	builder, err := NewBuilder(buildChan)
+	builder, err := NewBuilder(buildChan, o.ContextPath, o.RepoPath)
 	if err != nil {
 		logrus.Fatal(err)
 		return err

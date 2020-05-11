@@ -12,12 +12,14 @@ import (
 )
 
 type Builder struct {
-	jobChan chan models.BuildJob
-	cli     *client.Client
-	ctx     context.Context
+	jobChan  chan models.BuildJob
+	cli      *client.Client
+	ctx      context.Context
+	ctxPath  string
+	repoPath string
 }
 
-func NewBuilder(jobChan chan models.BuildJob) (Builder, error) {
+func NewBuilder(jobChan chan models.BuildJob, ctxPath string, repoPath string) (Builder, error) {
 	var builder Builder
 	ctx := context.Background()
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
@@ -25,7 +27,7 @@ func NewBuilder(jobChan chan models.BuildJob) (Builder, error) {
 		return builder, err
 	}
 
-	builder = Builder{jobChan: jobChan, cli: cli, ctx: ctx}
+	builder = Builder{jobChan: jobChan, cli: cli, ctx: ctx, ctxPath: ctxPath, repoPath: repoPath}
 	return builder, nil
 }
 
@@ -77,12 +79,12 @@ func (b Builder) cleanUpAfterBuild(buildContext *os.File) {
 //TODO Communicate with Harbour SCM in order to receive the path to the project-files
 func (b Builder) getProjectPath(project string) (string, error) {
 	// Just returns a demo path
-	return fmt.Sprintf("./test/repos/%s", project), nil
+	return fmt.Sprintf(b.repoPath+"%s", project), nil
 }
 
 func (b Builder) createBuildContext(project string) (*os.File, error) {
 
-	buildContext := fmt.Sprintf("./test/buildcontext/%s.tar", project)
+	buildContext := fmt.Sprintf(b.ctxPath+"%s.tar", project)
 	projectPath, err := b.getProjectPath(project)
 	if err != nil {
 		l.WithError(err).Error("Failed to receive the project files")
