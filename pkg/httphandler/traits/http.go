@@ -76,7 +76,7 @@ func (m *HttpModel) WriteResponse(v interface{}) (err error) {
 	return
 }
 
-// ReadRequest Parses the request as JSON into the model parameter
+// ReadRequest Parses the request as JSON into the models parameter
 // Errors are logged and should be handled by returning 500
 func (m *HttpModel) ReadRequest(model interface{}) (err error) {
 	r := m.GetRequest()
