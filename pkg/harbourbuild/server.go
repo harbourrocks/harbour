@@ -21,10 +21,11 @@ func RunBuildServer(o *configuration.Options) error {
 		logrus.Fatal(err)
 		return err
 	}
+	redisconfig.AddRedis(&builder, o.Redis)
 	builder.Start()
 	logrus.Info("Started Harbour builder ")
 
-	http.HandleFunc("/build/test", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/build", func(w http.ResponseWriter, r *http.Request) {
 		logrus.Trace(r)
 		model := handler.NewBuilderModel(buildChan)
 		traits.AddHttp(&model, r, w, o.OIDCConfig)

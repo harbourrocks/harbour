@@ -2,7 +2,9 @@ package handler
 
 import (
 	"encoding/json"
+	"github.com/google/uuid"
 	"github.com/harbourrocks/harbour/pkg/harbourbuild/models"
+	"github.com/harbourrocks/harbour/pkg/harbourbuild/redis"
 	"github.com/harbourrocks/harbour/pkg/httphandler/traits"
 	"github.com/harbourrocks/harbour/pkg/redisconfig"
 	l "github.com/sirupsen/logrus"
@@ -23,7 +25,6 @@ func NewBuilderModel(buildChan chan models.BuildJob) BuilderModel {
 func (b BuilderModel) Handle() {
 	w := b.GetResponse()
 	req := b.GetRequest()
-	//redisConfig := b.GetRedisConfig()
 	var buildRequest models.BuildRequest
 	decoder := json.NewDecoder(req.Body)
 	err := decoder.Decode(&buildRequest)
@@ -33,9 +34,33 @@ func (b BuilderModel) Handle() {
 		return
 	}
 
-	b.buildChan <- models.BuildJob{Request: buildRequest}
+	buildKey, err := b.createBuildEntry(buildRequest)
+	if err != nil {
+		l.WithError(err).Error("Failed to save build to redis")
+		return
+	}
+
+	b.buildChan <- models.BuildJob{Request: buildRequest, BuildKey: buildKey}
 
 	l.Trace("Build job enqueued")
-
 	w.WriteHeader(http.StatusAccepted)
+}
+
+func (b BuilderModel) createBuildEntry(request models.BuildRequest) (string, error) {
+	redisConfig := b.GetRedisConfig()
+	buildId := uuid.New()
+	buildKey := redis.BuildAppKey(buildId.String())
+
+	client := redisconfig.OpenClient(redisConfig)
+	err := client.HSet(buildKey,
+		"project", request.Project,
+		"commit", request.Commit,
+		"logs", nil,
+		"repository", request.Project,
+		"build_status", "Pending").Err()
+	if err != nil {
+		return buildKey, err
+	}
+
+	return buildKey, nil
 }

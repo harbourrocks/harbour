@@ -1,14 +1,18 @@
 package harbourbuild
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"github.com/harbourrocks/harbour/pkg/harbourbuild/models"
+	"github.com/harbourrocks/harbour/pkg/redisconfig"
 	"github.com/jhoonb/archivex"
 	l "github.com/sirupsen/logrus"
+	"io"
 	"os"
+	"strings"
 )
 
 type Builder struct {
@@ -17,6 +21,7 @@ type Builder struct {
 	ctx      context.Context
 	ctxPath  string
 	repoPath string
+	redisconfig.RedisModel
 }
 
 func NewBuilder(jobChan chan models.BuildJob, ctxPath string, repoPath string) (Builder, error) {
@@ -43,33 +48,50 @@ func (b Builder) Start() {
 }
 
 func (b Builder) buildImage(job models.BuildJob) {
-	l.Trace("Create Build Context")
+
+	redisConfig := b.GetRedisConfig()
+	redisClient := redisconfig.OpenClient(redisConfig)
+	redisClient.HSet(job.BuildKey, "build_status", "Running")
+
 	buildCtx, err := b.createBuildContext(job.Request.Project)
 	if err != nil {
 		l.WithError(err).Error("Failed to create build context")
 		return
 	}
 
-	defer b.cleanUpAfterBuild(buildCtx)
-
-	l.Trace("Create Build Options")
 	opt := types.ImageBuildOptions{
 		Tags:       job.Request.Tags,
 		Dockerfile: job.Request.Dockerfile,
 	}
 
-	l.Trace("Build Image")
-	_, err = b.cli.ImageBuild(b.ctx, buildCtx, opt)
+	resp, err := b.cli.ImageBuild(b.ctx, buildCtx, opt)
 	if err != nil {
 		l.WithError(err).Error("Failed to build image")
 		return
 	}
+
+	defer b.cleanUpAfterBuild(buildCtx, resp.Body)
+
+	buf := new(bytes.Buffer)
+	_, err = buf.ReadFrom(resp.Body)
+	if err != nil {
+		l.WithError(err).Error("Failed to parse response body")
+	}
+
+	logs := buf.String()
+	if strings.Contains(logs, "errorDetail") {
+		redisClient.HSet(job.BuildKey, "build_status", "Failed", "logs", logs)
+		return
+	}
+
+	redisClient.HSet(job.BuildKey, "build_status", "Success", "logs", logs)
+	l.Trace("Image was built")
 }
 
-func (b Builder) cleanUpAfterBuild(buildContext *os.File) {
-	l.Trace("Cleaning up")
+func (b Builder) cleanUpAfterBuild(buildContext *os.File, logs io.ReadCloser) {
 	err := buildContext.Close()
 	err = os.Remove(buildContext.Name())
+	err = logs.Close()
 	if err != nil {
 		l.WithError(err).Error("Error while cleaning up build context")
 		return
@@ -83,7 +105,6 @@ func (b Builder) getProjectPath(project string) (string, error) {
 }
 
 func (b Builder) createBuildContext(project string) (*os.File, error) {
-
 	buildContext := fmt.Sprintf(b.ctxPath+"%s.tar", project)
 	projectPath, err := b.getProjectPath(project)
 	if err != nil {
