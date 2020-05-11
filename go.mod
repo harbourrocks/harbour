@@ -12,6 +12,7 @@ require (
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.4.0 // indirect
 	github.com/go-redis/redis/v7 v7.2.0
+	github.com/google/uuid v1.1.1
 	github.com/graphql-go/graphql v0.7.9
 	github.com/jhoonb/archivex v0.0.0-20180718040744-0488e4ce1681
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect

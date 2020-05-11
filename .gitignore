@@ -1,3 +1,5 @@
 .env
 
 scripts/ngrok
+
+deployments/registry/registry-auth*
