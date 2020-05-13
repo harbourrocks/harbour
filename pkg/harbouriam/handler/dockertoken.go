@@ -46,71 +46,8 @@ var supportedScopes = map[string]struct{}{
 	"push": {},
 }
 
-// dockerScopeFromString converts a scope string into a DockerScope
-func dockerScopeFromString(scope string) DockerScope {
-	split := strings.Split(scope, ":")
-	resourceType := split[0]
-	var resourceName, actions string
-
-	if len(split) == 3 {
-		resourceName = split[1]
-		actions = split[2]
-	} else {
-		resourceName = split[1] + split[2]
-		actions = split[3]
-	}
-
-	return DockerScope{
-		Type:    resourceType,
-		Name:    resourceName,
-		Actions: strings.Split(actions, ","),
-	}
-}
-
-// dockerScopesFromString converts space separated DockerScope into an array of DockerScopes
-func dockerScopesFromString(scopes string) []DockerScope {
-	split := strings.Split(scopes, " ")
-	r := make([]DockerScope, len(split))
-	for i, scope := range split {
-		r[i] = dockerScopeFromString(scope)
-	}
-	return r
-}
-
-// validateScopeOk checks if the requested scope is okay
-func validateScopeOk(scope DockerScope) bool {
-	for _, action := range scope.Actions {
-		if _, ok := supportedScopes[action]; !ok {
-			l.WithField("Action", action).Warn("Action not supported")
-			return false
-		}
-	}
-
-	return true
-}
-
-// resolveUserIdFromUsername returns the userId (harbour userId) from a username (via redis lookup)
-func (h DockerTokenModel) resolveUserIdFromUsername(username string) (userId string, err error) {
-	log := h.GetHRock().L
-	client := redisconfig.OpenClient(h.GetRedisConfig())
-
-	userIdCmd := client.Get(redis2.IamUserName(username))
-	if userIdCmd.Err() == redis.Nil {
-		log.WithField("username", username).Warn("Username not found")
-		return
-	} else if userIdCmd.Err() != nil {
-		log.WithError(userIdCmd.Err()).Error("Failed to load user identification")
-		return
-	} else {
-		userId = userIdCmd.Val()
-	}
-
-	return
-}
-
 func (h DockerTokenModel) Handle() {
 	w := h.GetResponse()
-	redisConfig := h.GetRedisConfig()
 	log := h.GetHRock().L
 
 	qAccount := h.GetQueryParam("account")
@@ -119,16 +56,6 @@ func (h DockerTokenModel) Handle() {
 	qService := h.GetQueryParam("service")
 	qScope := h.GetQueryParam("scope")
 
-	dockerScopes := dockerScopesFromString(qScope)
-
-	// validate scopes
-	for _, scope := range dockerScopes {
-		if !validateScopeOk(scope) {
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-	}
-
 	log.
 		WithField("account", qAccount).
 		WithField("service", qService).
@@ -136,36 +63,6 @@ func (h DockerTokenModel) Handle() {
 		WithField("offlineToken", qOfflineToken).
 		WithField("scope", qScope).
 		Trace("Docker authentication attempt")
-
-	client := redisconfig.OpenClient(redisConfig)
-
-	userId, err := h.resolveUserIdFromUsername(qAccount)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return // error logged in resolveUserIdFromUsername
-	} else if userId == "" {
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-
-	log.WithField("userId", userId).Info("Docker authentication attempt")
-
-	dockerPasswordHash, err := client.HGet(redis2.IamUserKey(userId), "docker-password").Result()
-	if err != nil {
-		// redis error occurred
-		log.WithError(err).Error("Failed to load docker password")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	log.WithField("hash", dockerPasswordHash).Trace("Docker Password hash found")
-
-	dockerPasswordDecoded, err := base64.StdEncoding.DecodeString(dockerPasswordHash)
-	if err != nil {
-		log.WithError(err).Error("Failed to decode docker password")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
 
 	// get and validate authorization header value
 	var sentUsername, sentPassword string
@@ -200,6 +97,34 @@ func (h DockerTokenModel) Handle() {
 	}
 
 	log.WithField("username", sentUsername).WithField("password", sentPassword).Trace("Extracted username and password")
+
+	// validate scopes
+	dockerScopes := dockerScopesFromString(qScope)
+	for _, scope := range dockerScopes {
+		if !validateScopeOk(scope) {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+	}
+
+	// turn username into harbour userId
+	userId, err := h.resolveUserIdFromUsername(qAccount)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return // error logged in resolveUserIdFromUsername
+	} else if userId == "" {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	log.WithField("userId", userId).Info("Docker authentication attempt")
+
+	// load docker password hash for user
+	dockerPasswordDecoded, err := h.getDockerPasswordByUserId(userId)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return // error logged in getDockerPasswordByUserId
+	}
 
 	// compare passwords
 	if bcrypt.CompareHashAndPassword(dockerPasswordDecoded, []byte(sentPassword)) != nil {
@@ -256,4 +181,88 @@ func (h DockerTokenModel) Handle() {
 		ExpiresIn:   int64(h.GetIamConfig().Docker.TokenLifetime.Seconds()),
 		IssuedAt:    nowTime.Format(time.RFC3339),
 	})
+}
+
+// dockerScopeFromString converts a scope string into a DockerScope
+func dockerScopeFromString(scope string) DockerScope {
+	split := strings.Split(scope, ":")
+	resourceType := split[0]
+	var resourceName, actions string
+
+	if len(split) == 3 {
+		resourceName = split[1]
+		actions = split[2]
+	} else {
+		resourceName = split[1] + split[2]
+		actions = split[3]
+	}
+
+	return DockerScope{
+		Type:    resourceType,
+		Name:    resourceName,
+		Actions: strings.Split(actions, ","),
+	}
+}
+
+// validateScopeOk checks if the requested scope is okay
+func validateScopeOk(scope DockerScope) bool {
+	for _, action := range scope.Actions {
+		if _, ok := supportedScopes[action]; !ok {
+			l.WithField("Action", action).Warn("Action not supported")
+			return false
+		}
+	}
+
+	return true
+}
+
+// dockerScopesFromString converts space separated DockerScope into an array of DockerScopes
+func dockerScopesFromString(scopes string) []DockerScope {
+	split := strings.Split(scopes, " ")
+	r := make([]DockerScope, len(split))
+	for i, scope := range split {
+		r[i] = dockerScopeFromString(scope)
+	}
+	return r
+}
+
+// resolveUserIdFromUsername returns the userId (harbour userId) from a username (via redis lookup)
+func (h DockerTokenModel) resolveUserIdFromUsername(username string) (userId string, err error) {
+	log := h.GetHRock().L
+	client := redisconfig.OpenClient(h.GetRedisConfig())
+
+	userIdCmd := client.Get(redis2.IamUserName(username))
+	if userIdCmd.Err() == redis.Nil {
+		log.WithField("username", username).Warn("Username not found")
+		return
+	} else if userIdCmd.Err() != nil {
+		log.WithError(userIdCmd.Err()).Error("Failed to load user identification")
+		return
+	} else {
+		userId = userIdCmd.Val()
+	}
+
+	return
+}
+
+func (h DockerTokenModel) getDockerPasswordByUserId(userId string) (dockerPasswordDecoded []byte, err error) {
+	log := h.GetHRock().L
+
+	client := redisconfig.OpenClient(h.GetRedisConfig())
+	dockerPasswordHash, err := client.HGet(redis2.IamUserKey(userId), "docker-password").Result()
+	if err != nil {
+		// redis error occurred
+		log.WithError(err).Error("Failed to load docker password")
+		return
+	}
+
+	log.WithField("hash", dockerPasswordHash).Trace("Docker Password hash found")
+
+	dockerPasswordDecoded, err = base64.StdEncoding.DecodeString(dockerPasswordHash)
+	if err != nil {
+		log.WithError(err).Error("Failed to decode docker password")
+		return
+	}
+
+	return
 }
