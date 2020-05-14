@@ -1,8 +1,10 @@
 package graphql
 
 import (
+	"errors"
 	"github.com/graphql-go/graphql"
 	"github.com/harbourrocks/harbour/pkg/apiclient"
+	"github.com/harbourrocks/harbour/pkg/context"
 	"github.com/harbourrocks/harbour/pkg/harbourgateway/configuration"
 	"github.com/harbourrocks/harbour/pkg/harbourgateway/model"
 	"github.com/harbourrocks/harbour/pkg/registry/models"
@@ -23,13 +25,32 @@ var repositoryType = graphql.NewObject(
 	},
 )
 
+func acquireDockerToken(hRock context.HRock, tokenUrl string) (token string, err error) {
+	var tokenResponse models.DockerTokenResponse
+	resp, err := apiclient.Get(hRock, tokenUrl, &tokenResponse, hRock.IdTokenStr)
+	if err != nil {
+		return // error logged in Get
+	}
+
+	if resp.StatusCode >= 400 {
+		err = errors.New("request failed")
+		return // error logged in
+	}
+
+	token = tokenResponse.Token
+	return
+}
+
 func RepositoriesField(options configuration.Options) *graphql.Field {
 	return &graphql.Field{
 		Type: repositoryListType,
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			hRock := p.Context.Value("hRock").(context.HRock)
+			dockerToken, err := acquireDockerToken(hRock, options.DockerRegistry.TokenURL("registry", "catalog", "*"))
+
 			// query repositories from docker registry
 			var regRepositories models.Repositories
-			rsp, err := apiclient.Get(options.DockerRegistry.RepositoriesURL(), &regRepositories)
+			rsp, err := apiclient.Get(hRock, options.DockerRegistry.RepositoriesURL(), &regRepositories, dockerToken)
 			if err != nil || rsp.StatusCode >= 300 {
 				return nil, err
 			}

@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func HeaderAuth(request *http.Request, oidcConfig OIDCConfig) (token *oidc.IDToken, err error) {
+func HeaderAuth(request *http.Request, oidcConfig OIDCConfig) (token *oidc.IDToken, tokenString string, err error) {
 	authorizationHeader := request.Header.Get("Authorization")
 
 	// trim any spaces
@@ -24,7 +24,7 @@ func HeaderAuth(request *http.Request, oidcConfig OIDCConfig) (token *oidc.IDTok
 	l.WithField("Authorization", authorizationHeader).Trace("Authorization Header")
 
 	// extract actual token
-	tokenString := authorizationHeader[7:]
+	tokenString = authorizationHeader[7:]
 
 	// validate token string
 	token, err = JwtAuth(tokenString, oidcConfig) // error is logged in AuthJwt

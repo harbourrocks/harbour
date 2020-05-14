@@ -31,8 +31,9 @@ func AddHRock(trait HRockTrait) {
 	rqId := uuid.New()
 
 	trait.SetHRock(HRock{
-		L:        l.WithField("rqId", rqId.String()),
-		CtxIdent: rqId,
-		IdToken:  trait.GetToken(),
+		L:          l.WithField("rqId", rqId.String()),
+		CtxIdent:   rqId,
+		IdToken:    trait.GetToken(),
+		IdTokenStr: trait.GetTokenStr(),
 	})
 }

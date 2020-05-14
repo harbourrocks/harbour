@@ -8,12 +8,15 @@ import (
 type IdTokenTrait interface {
 	GetToken() *auth.IdToken
 	SetToken(t auth.IdToken)
+	GetTokenStr() string
+	SetTokenStr(string)
 	HttpTrait
 }
 
 // IdTokenModel holds the idToken
 type IdTokenModel struct {
-	idToken *auth.IdToken
+	idToken    *auth.IdToken
+	idTokenStr string
 }
 
 func (m IdTokenModel) GetToken() *auth.IdToken {
@@ -24,10 +27,18 @@ func (m *IdTokenModel) SetToken(t auth.IdToken) {
 	m.idToken = &t
 }
 
+func (m IdTokenModel) GetTokenStr() string {
+	return m.idTokenStr
+}
+
+func (m *IdTokenModel) SetTokenStr(t string) {
+	m.idTokenStr = t
+}
+
 func AddIdToken(trait IdTokenTrait) {
 	r := trait.GetRequest()
 
-	token, err := auth.HeaderAuth(r, trait.GetOidcConfig())
+	token, tokenStr, err := auth.HeaderAuth(r, trait.GetOidcConfig())
 	if err != nil {
 		return
 	}
@@ -38,4 +49,5 @@ func AddIdToken(trait IdTokenTrait) {
 	}
 
 	trait.SetToken(idToken)
+	trait.SetTokenStr(tokenStr)
 }

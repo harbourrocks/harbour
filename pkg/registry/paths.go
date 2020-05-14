@@ -26,6 +26,14 @@ func (c RegistryConfig) RepositoryTagsURL(repositoryName string) string {
 	return combine(c.Url, RepositoryTagsURL(repositoryName))
 }
 
+func TokenURL() string {
+	return "/docker/auth/token"
+}
+
+func (c RegistryConfig) TokenURL(type_, name, action string) string {
+	return fmt.Sprintf("%s?service=%s&scope=%s:%s:%s", combine(c.IAMUrl, TokenURL()), c.Url, type_, name, action)
+}
+
 func combine(host, path string) string {
 	return fmt.Sprintf("%s%s", host, path)
 }

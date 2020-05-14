@@ -11,20 +11,13 @@ import (
 	redis2 "github.com/harbourrocks/harbour/pkg/harbouriam/redis"
 	"github.com/harbourrocks/harbour/pkg/httphandler/traits"
 	"github.com/harbourrocks/harbour/pkg/redisconfig"
+	"github.com/harbourrocks/harbour/pkg/registry/models"
 	l "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"strings"
 	"time"
 )
-
-// DockerTokenResponse is the response model of the token request
-type DockerTokenResponse struct {
-	Token       string `json:"token"`
-	AccessToken string `json:"access_token"`
-	ExpiresIn   int64  `json:"expires_in"`
-	IssuedAt    string `json:"issued_at"`
-}
 
 // DockerScope is part of the claims and represents allowed actions
 type DockerScope struct {
@@ -45,6 +38,7 @@ type DockerTokenModel struct {
 var supportedScopes = map[string]struct{}{
 	"pull": {},
 	"push": {},
+	"*":    {},
 }
 
 func (h DockerTokenModel) Handle() {
@@ -137,7 +131,7 @@ func (h DockerTokenModel) Handle() {
 	log.WithField("token", signedToken).Trace("Signed JWT token")
 
 	w.WriteHeader(http.StatusOK)
-	_ = h.WriteResponse(DockerTokenResponse{
+	_ = h.WriteResponse(models.DockerTokenResponse{
 		Token:       signedToken,
 		AccessToken: signedToken,
 		ExpiresIn:   int64(h.GetIamConfig().Docker.TokenLifetime.Seconds()),
@@ -155,7 +149,7 @@ func dockerScopeFromString(scope string) DockerScope {
 		resourceName = split[1]
 		actions = split[2]
 	} else {
-		resourceName = split[1] + split[2]
+		resourceName = split[1] + ":" + split[2]
 		actions = split[3]
 	}
 

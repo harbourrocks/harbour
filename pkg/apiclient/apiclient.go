@@ -1,7 +1,10 @@
 package apiclient
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
+	context2 "github.com/harbourrocks/harbour/pkg/context"
 	l "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
@@ -9,13 +12,27 @@ import (
 
 // Get issues a GET request against the url.
 //The response is unmarshalled into response
-func Get(url string, response interface{}) (resp *http.Response, err error) {
-	resp, err = http.Get(url)
+func Get(hRock context2.HRock, url string, response interface{}, token string) (resp *http.Response, err error) {
+	log := hRock.L
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, nil)
+	if err != nil {
+		log.
+			WithField("url", url).WithError(err).
+			Error("Failed to create request")
+		return
+	}
+
+	if token != "" {
+		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))
+	}
+
+	resp, err = http.DefaultClient.Do(req)
 	if err != nil {
 		l.
 			WithError(err).
-			WithField("Method", resp.Request.Method).
-			WithField("Url", url).
+			WithField("method", req.Method).
+			WithField("url", url).
 			Error("Failed to send request")
 		return
 	}

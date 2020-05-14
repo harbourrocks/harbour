@@ -18,7 +18,7 @@ func (a AuthModel) Handle() {
 	r := a.GetRequest()
 	w := a.GetResponse()
 
-	_, err := auth.HeaderAuth(r, a.GetOidcConfig())
+	_, _, err := auth.HeaderAuth(r, a.GetOidcConfig())
 
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)

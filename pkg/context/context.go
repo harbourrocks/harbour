@@ -7,7 +7,8 @@ import (
 )
 
 type HRock struct {
-	L        *logrus.Entry
-	CtxIdent uuid.UUID
-	IdToken  *auth.IdToken
+	L          *logrus.Entry
+	CtxIdent   uuid.UUID
+	IdToken    *auth.IdToken
+	IdTokenStr string
 }

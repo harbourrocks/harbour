@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"github.com/graphql-go/graphql"
+	"github.com/harbourrocks/harbour/pkg/context"
 	"github.com/harbourrocks/harbour/pkg/harbourgateway/configuration"
 	graphql2 "github.com/harbourrocks/harbour/pkg/harbourgateway/graphql"
 	"github.com/harbourrocks/harbour/pkg/harbourgateway/handler"
@@ -38,6 +39,8 @@ func RunGatewayServer(o *configuration.Options) error {
 		traits.AddHttp(&model, r, w, o.OIDCConfig)
 		traits.AddIdToken(&model)
 		traits2.AddGraphQL(&model, schema)
+		context.AddHRock(&model)
+
 		if err := httphandler.ForceAuthenticated(&model); err == nil {
 			_ = model.Handle()
 		}
