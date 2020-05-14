@@ -15,3 +15,11 @@ func ForceAuthenticated(model traits.IdTokenTrait) (err error) {
 
 	return
 }
+
+// JsonResp adds the Content-Type: application/json to the response
+func JsonResp(handler func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
+	return func(writer http.ResponseWriter, request *http.Request) {
+		writer.Header().Add("Content-Type", "application/json")
+		handler(writer, request)
+	}
+}

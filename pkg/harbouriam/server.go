@@ -15,6 +15,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+var jr = httphandler.JsonResp
+
 // RunIAMServer runs the IAM server application
 func RunIAMServer(o *configuration.Options) error {
 	logrus.Info("Started Harbour IAM server")
@@ -49,7 +51,7 @@ func RunIAMServer(o *configuration.Options) error {
 	})
 
 	// DockerHandler
-	http.HandleFunc("/docker/password", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/docker/password", jr(func(w http.ResponseWriter, r *http.Request) {
 		logrus.Trace(r)
 		model := handler.DockerPasswordModel{}
 		traits.AddHttp(&model, r, w, o.OIDCConfig)
@@ -59,19 +61,20 @@ func RunIAMServer(o *configuration.Options) error {
 		if err := httphandler.ForceAuthenticated(&model); err == nil {
 			model.Handle()
 		}
-	})
+	}))
 
 	// DockerHandler
-	http.HandleFunc("/docker/auth/token", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/docker/auth/token", jr(func(w http.ResponseWriter, r *http.Request) {
 		logrus.Trace(r)
 		model := handler.DockerTokenModel{}
 		traits.AddHttp(&model, r, w, o.OIDCConfig)
 		configuration.AddIamConfig(&model, *o)
 		redisconfig.AddRedis(&model, o.Redis)
+		traits.AddIdToken(&model)
 		context.AddHRock(&model)
 
 		model.Handle()
-	})
+	}))
 
 	bindAddress := "0.0.0.0:5100"
 	logrus.Info(fmt.Sprintf("Listening on http://%s/", bindAddress))

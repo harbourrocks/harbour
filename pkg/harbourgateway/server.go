@@ -38,7 +38,7 @@ func RunGatewayServer(o *configuration.Options) error {
 		traits.AddHttp(&model, r, w, o.OIDCConfig)
 		traits.AddIdToken(&model)
 		traits2.AddGraphQL(&model, schema)
-		if err := httphandler.ForceAuthenticated(&model); err != nil {
+		if err := httphandler.ForceAuthenticated(&model); err == nil {
 			_ = model.Handle()
 		}
 	})

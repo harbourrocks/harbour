@@ -7,11 +7,11 @@ services:
       - 5000:5000
     environment:
       REGISTRY_AUTH_TOKEN_AUTOREDIRECT: "false"
-      REGISTRY_AUTH_TOKEN_REALM: http://192.168.1.110:5100/docker/auth/token
+      REGISTRY_AUTH_TOKEN_REALM: http://192.168.0.10:5100/docker/auth/token
       REGISTRY_AUTH_TOKEN_SERVICE: http://localhost:5000
-      REGISTRY_AUTH_TOKEN_ISSUER: http://192.168.1.110:5100
+      REGISTRY_AUTH_TOKEN_ISSUER: http://192.168.0.10:5100
       REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE: /certs/registry-auth.crt
     volumes:
-      - ./registry-auth.crt:/certs/registry-auth.crt
+      - ./registry-auth2.crt:/certs/registry-auth.crt
 #      - /path/data:/var/lib/registry
 #      - /path/auth:/auth

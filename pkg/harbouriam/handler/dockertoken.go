@@ -39,6 +39,7 @@ type DockerTokenModel struct {
 	redisconfig.RedisModel
 	configuration.IamModel
 	context.HRockModel
+	traits.IdTokenModel
 }
 
 var supportedScopes = map[string]struct{}{
@@ -64,39 +65,23 @@ func (h DockerTokenModel) Handle() {
 		WithField("scope", qScope).
 		Trace("Docker authentication attempt")
 
-	// get and validate authorization header value
-	var sentUsername, sentPassword string
-	authHeaderValue := h.GetRequest().Header.Get("Authorization")
-	log.WithField("AuthorizationHeader", authHeaderValue).Trace("Got authorization header")
-	if len(authHeaderValue) < len("Basic ") {
-		log.Warn("AuthorizationHeader value too short")
-		w.WriteHeader(http.StatusUnauthorized)
+	// authenticate user and resolve dockerUsername
+	dockerUserName, err := h.authenticateViaToken()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		return
-	} else {
-		authHeaderValue = strings.TrimPrefix(authHeaderValue, "Basic ")
-		log.WithField("AuthorizationHeader", authHeaderValue).Trace("Authorization header trimmed")
-
-		bytes, err := base64.StdEncoding.DecodeString(authHeaderValue)
+	} else if dockerUserName == "" {
+		dockerUserName, err = h.authenticateViaBasic()
 		if err != nil {
-			log.WithError(err).Warn("Failed to decode authentication header")
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		} else if dockerUserName == "" {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
-
-		authHeaderValue := string(bytes)
-		log.WithField("AuthorizationHeader", authHeaderValue).Trace("Authorization header decoded")
-
-		split := strings.Split(authHeaderValue, ":")
-		if len(split) != 2 {
-			log.Warn("There has to be exactly one colon for basic authentication")
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-
-		sentUsername, sentPassword = split[0], split[1]
 	}
 
-	log.WithField("username", sentUsername).WithField("password", sentPassword).Trace("Extracted username and password")
+	log.Info("Authentication successful")
 
 	// validate scopes
 	dockerScopes := dockerScopesFromString(qScope)
@@ -107,45 +92,22 @@ func (h DockerTokenModel) Handle() {
 		}
 	}
 
-	// turn username into harbour userId
-	userId, err := h.resolveUserIdFromUsername(qAccount)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return // error logged in resolveUserIdFromUsername
-	} else if userId == "" {
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-
-	log.WithField("userId", userId).Info("Docker authentication attempt")
-
-	// load docker password hash for user
-	dockerPasswordDecoded, err := h.getDockerPasswordByUserId(userId)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return // error logged in getDockerPasswordByUserId
-	}
-
-	// compare passwords
-	if bcrypt.CompareHashAndPassword(dockerPasswordDecoded, []byte(sentPassword)) != nil {
-		log.Warn("Invalid password")
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-
-	log.Info("Authentication successful")
-
 	nowTime := time.Now()
-	token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
-		"iss":    h.GetIamConfig().Docker.Issuer,                            // this is the issuer (harbour iam namely)
-		"sub":    sentUsername,                                              // this is the user who wants to authenticate
-		"aud":    qService,                                                  // this is the identifier of the registry
-		"exp":    nowTime.Add(h.GetIamConfig().Docker.TokenLifetime).Unix(), // token expiration
-		"nbf":    nowTime.Unix(),                                            // not before
-		"iat":    nowTime.Unix(),                                            // issued at
-		"jit":    uuid.New().String(),                                       // some unique value required by the registry
-		"access": dockerScopes,
-	})
+	claims := jwt.MapClaims{
+		"iss": h.GetIamConfig().Docker.Issuer,                            // this is the issuer (harbour iam namely)
+		"sub": dockerUserName,                                            // this is the user who wants to authenticate
+		"aud": qService,                                                  // this is the identifier of the registry
+		"exp": nowTime.Add(h.GetIamConfig().Docker.TokenLifetime).Unix(), // token expiration
+		"nbf": nowTime.Unix(),                                            // not before
+		"iat": nowTime.Unix(),                                            // issued at
+		"jit": uuid.New().String(),                                       // some unique value required by the registry
+	}
+
+	if len(dockerScopes) > 0 {
+		claims["access"] = dockerScopes
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
 
 	// generate the x5c signature
 	x5c, err := cryptography.GenerateX5C(h.GetHRock(), h.GetIamConfig().Docker.CertificatePath)
@@ -218,6 +180,10 @@ func validateScopeOk(scope DockerScope) bool {
 
 // dockerScopesFromString converts space separated DockerScope into an array of DockerScopes
 func dockerScopesFromString(scopes string) []DockerScope {
+	if scopes == "" {
+		return make([]DockerScope, 0)
+	}
+
 	split := strings.Split(scopes, " ")
 	r := make([]DockerScope, len(split))
 	for i, scope := range split {
@@ -265,4 +231,111 @@ func (h DockerTokenModel) getDockerPasswordByUserId(userId string) (dockerPasswo
 	}
 
 	return
+}
+
+func (h DockerTokenModel) getDockerUsernameByUserId(userId string) (dockerUsername string, err error) {
+	log := h.GetHRock().L
+
+	client := redisconfig.OpenClient(h.GetRedisConfig())
+	dockerUsername, err = client.HGet(redis2.IamUserKey(userId), "preferred_username").Result()
+	if err != nil {
+		// redis error occurred
+		log.WithError(err).Error("Failed to load preferred_username")
+		return
+	}
+
+	return
+}
+
+func (h DockerTokenModel) authenticateViaToken() (dockerUsername string, err error) {
+	idToken := h.GetHRock().IdToken
+
+	if idToken != nil {
+		dockerUsername, err = h.getDockerUsernameByUserId(idToken.Subject)
+	}
+
+	return
+}
+
+func (h DockerTokenModel) authenticateViaBasic() (dockerUsername string, err error) {
+	log := h.GetHRock().L
+
+	authHeaderValue := h.GetRequest().Header.Get("Authorization")
+	log.WithField("AuthorizationHeader", authHeaderValue).Trace("Got authorization header")
+
+	// decode basic header
+	dockerUsername, sentPassword := decomposeBasicHeader(h.GetHRock(), authHeaderValue)
+	log.WithField("username", dockerUsername).WithField("password", sentPassword).Trace("Extracted username and password")
+	if dockerUsername == "" {
+		return
+	}
+
+	// turn username into harbour userId
+	userId, err := h.resolveUserIdFromUsername(dockerUsername)
+	if err != nil {
+		return // error logged in resolveUserIdFromUsername
+	} else if userId == "" {
+		dockerUsername = ""
+		return
+	}
+
+	log.WithField("userId", userId).Info("Docker authentication attempt")
+
+	// load docker password hash for user
+	dockerPasswordDecoded, err := h.getDockerPasswordByUserId(userId)
+	if err != nil {
+		return // error logged in getDockerPasswordByUserId
+	}
+
+	// compare passwords
+	if bcrypt.CompareHashAndPassword(dockerPasswordDecoded, []byte(sentPassword)) != nil {
+		log.Warn("Invalid password")
+		dockerUsername = ""
+		return
+	}
+
+	return
+}
+
+func decomposeBasicHeader(hRock context.HRock, authHeaderValue string) (username string, password string) {
+	log := hRock.L
+
+	// get and validate authorization header value
+	if strings.HasPrefix(authHeaderValue, "Basic ") == false {
+		log.Warn("No basic authentication header")
+		return
+	}
+
+	// trim Basic prefix
+	authHeaderValue = strings.TrimPrefix(authHeaderValue, "Basic ")
+	log.WithField("AuthorizationHeader", authHeaderValue).Trace("Basic header trimmed")
+
+	// decode base64
+	bytes, err := base64.StdEncoding.DecodeString(authHeaderValue)
+	if err != nil {
+		log.WithError(err).Warn("Failed to decode Basic header")
+		return
+	}
+
+	// bytes to string
+	authHeaderValue = string(bytes)
+	log.WithField("AuthorizationHeader", authHeaderValue).Trace("Basic header decoded")
+
+	// username and password are separated by a colon
+	// if there are two colons then fail
+	split := strings.Split(authHeaderValue, ":")
+	if len(split) != 2 {
+		log.Warn("There has to be exactly one colon for basic authentication")
+		return
+	}
+
+	username, password = split[0], split[1]
+	return
+}
+
+type UnauthorizedError struct {
+}
+
+func (e UnauthorizedError) Error() string {
+	return "authentication failed"
 }

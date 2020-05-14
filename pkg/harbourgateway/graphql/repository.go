@@ -29,8 +29,8 @@ func RepositoriesField(options configuration.Options) *graphql.Field {
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			// query repositories from docker registry
 			var regRepositories models.Repositories
-			_, err := apiclient.Get(options.DockerRegistry.RepositoriesURL(), &regRepositories)
-			if err != nil {
+			rsp, err := apiclient.Get(options.DockerRegistry.RepositoriesURL(), &regRepositories)
+			if err != nil || rsp.StatusCode >= 300 {
 				return nil, err
 			}
 
