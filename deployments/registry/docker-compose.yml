@@ -12,6 +12,6 @@ services:
       REGISTRY_AUTH_TOKEN_ISSUER: http://localhost:5100
       REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE: /certs/registry-auth.crt
     volumes:
-      - ./registry-auth2.crt:/certs/registry-auth.crt
+      - ./registry-auth.crt:/certs/registry-auth.crt
 #      - /path/data:/var/lib/registry
 #      - /path/auth:/auth

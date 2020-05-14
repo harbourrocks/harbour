@@ -11,7 +11,7 @@
       <env name="DOCKER_VALID_SERVICE" value="http://localhost:5000" />
       <env name="DOCKER_TOKEN_ISSUER" value="http://localhost:5100" />
       <env name="DOCKER_TOKEN_LIFETIME" value="3600s" />
-      <env name="DOCKER_TOKEN_CERTIFICATE" value="./deployments/registry/registry-auth2.crt" />
+      <env name="DOCKER_TOKEN_CERTIFICATE" value="./deployments/registry/registry-auth.crt" />
     </envs>
     <kind value="PACKAGE" />
     <filePath value="$PROJECT_DIR$/cmd/harbour-iam/main.go" />
