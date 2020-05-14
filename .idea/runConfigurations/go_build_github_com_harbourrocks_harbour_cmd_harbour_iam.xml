@@ -9,7 +9,7 @@
       <env name="LOG_LEVEL" value="trace" />
       <env name="DOCKER_TOKEN_SIGNING_KEY" value="./deployments/registry/registry-auth.key" />
       <env name="DOCKER_VALID_SERVICE" value="http://localhost:5000" />
-      <env name="DOCKER_TOKEN_ISSUER" value="http://192.168.0.10:5100" />
+      <env name="DOCKER_TOKEN_ISSUER" value="http://localhost:5100" />
       <env name="DOCKER_TOKEN_LIFETIME" value="3600s" />
       <env name="DOCKER_TOKEN_CERTIFICATE" value="./deployments/registry/registry-auth2.crt" />
     </envs>
