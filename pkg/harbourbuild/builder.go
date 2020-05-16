@@ -7,7 +7,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"github.com/harbourrocks/harbour/pkg/harbourbuild/models"
-	"github.com/harbourrocks/harbour/pkg/redisconfig"
+	"github.com/harbourrocks/harbour/pkg/redis"
 	"github.com/jhoonb/archivex"
 	l "github.com/sirupsen/logrus"
 	"io"
@@ -16,15 +16,15 @@ import (
 )
 
 type Builder struct {
-	jobChan  chan models.BuildJob
-	cli      *client.Client
-	ctx      context.Context
-	ctxPath  string
-	repoPath string
-	redisconfig.RedisModel
+	jobChan      chan models.BuildJob
+	cli          *client.Client
+	ctx          context.Context
+	ctxPath      string
+	repoPath     string
+	redisOptions redisconfig.RedisOptions
 }
 
-func NewBuilder(jobChan chan models.BuildJob, ctxPath string, repoPath string) (Builder, error) {
+func NewBuilder(jobChan chan models.BuildJob, ctxPath string, repoPath string, redisConfig redisconfig.RedisOptions) (Builder, error) {
 	var builder Builder
 	ctx := context.Background()
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
@@ -32,7 +32,7 @@ func NewBuilder(jobChan chan models.BuildJob, ctxPath string, repoPath string) (
 		return builder, err
 	}
 
-	builder = Builder{jobChan: jobChan, cli: cli, ctx: ctx, ctxPath: ctxPath, repoPath: repoPath}
+	builder = Builder{jobChan: jobChan, cli: cli, ctx: ctx, ctxPath: ctxPath, repoPath: repoPath, redisOptions: redisConfig}
 	return builder, nil
 }
 
@@ -48,9 +48,7 @@ func (b Builder) Start() {
 }
 
 func (b Builder) buildImage(job models.BuildJob) {
-
-	redisConfig := b.GetRedisConfig()
-	redisClient := redisconfig.OpenClient(redisConfig)
+	redisClient := redisconfig.OpenClient(b.redisOptions)
 	redisClient.HSet(job.BuildKey, "build_status", "Running")
 
 	buildCtx, err := b.createBuildContext(job.Request.Project)

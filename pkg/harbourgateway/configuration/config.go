@@ -2,7 +2,7 @@ package configuration
 
 import (
 	"github.com/harbourrocks/harbour/pkg/auth"
-	"github.com/harbourrocks/harbour/pkg/redisconfig"
+	"github.com/harbourrocks/harbour/pkg/redis"
 	"github.com/harbourrocks/harbour/pkg/registry"
 )
 

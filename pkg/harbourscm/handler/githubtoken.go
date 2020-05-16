@@ -3,7 +3,7 @@ package handler
 import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/harbourrocks/harbour/pkg/harbourscm/redis"
-	"github.com/harbourrocks/harbour/pkg/redisconfig"
+	"github.com/harbourrocks/harbour/pkg/redis"
 	l "github.com/sirupsen/logrus"
 	"time"
 )

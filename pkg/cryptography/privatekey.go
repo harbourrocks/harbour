@@ -1,15 +1,16 @@
 package cryptography
 
 import (
+	"context"
 	"crypto/rsa"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/harbourrocks/harbour/pkg/context"
+	"github.com/harbourrocks/harbour/pkg/logconfig"
 	"io/ioutil"
 )
 
 // ReadPrivateKey loads the private key from the file path
-func ReadPrivateKey(ctx context.HRock, keyPath string) (privateKey *rsa.PrivateKey, err error) {
-	log := ctx.L
+func ReadPrivateKey(ctx context.Context, keyPath string) (privateKey *rsa.PrivateKey, err error) {
+	log := logconfig.GetLogCtx(ctx)
 
 	log.WithField("keyFile", keyPath).Error("Reading private key file")
 
