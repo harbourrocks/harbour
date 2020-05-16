@@ -3,7 +3,6 @@ package graphql
 import (
 	"github.com/graphql-go/graphql"
 	"github.com/harbourrocks/harbour/pkg/apiclient"
-	"github.com/harbourrocks/harbour/pkg/context"
 	"github.com/harbourrocks/harbour/pkg/harbourgateway/configuration"
 	"github.com/harbourrocks/harbour/pkg/harbourgateway/model"
 	"github.com/harbourrocks/harbour/pkg/registry/models"
@@ -38,19 +37,17 @@ func TagsField(options configuration.Options) *graphql.Field {
 			},
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-			hRock := p.Context.Value("hRock").(context.HRock)
-
 			// parse query parameter
 			repositoryQuery, isOK := p.Args["repository"].(string)
 			if !isOK {
 				return nil, nil
 			}
 
-			dockerToken, err := acquireDockerToken(hRock, options.DockerRegistry.TokenURL("repository", repositoryQuery, "pull"))
+			dockerToken, err := acquireDockerToken(p.Context, options.DockerRegistry.TokenURL("repository", repositoryQuery, "pull"))
 
 			// query tags of repository from docker registry
 			var regTags models.Tags
-			_, err = apiclient.Get(hRock, options.DockerRegistry.RepositoryTagsURL(repositoryQuery), &regTags, dockerToken)
+			_, err = apiclient.Get(p.Context, options.DockerRegistry.RepositoryTagsURL(repositoryQuery), &regTags, dockerToken)
 			if err != nil {
 				return nil, err
 			}

@@ -3,16 +3,14 @@ package auth
 import (
 	"context"
 	"github.com/coreos/go-oidc"
-	l "github.com/sirupsen/logrus"
+	"github.com/harbourrocks/harbour/pkg/logconfig"
 )
 
-func JwtAuth(jwtToken string, oidcConfig OIDCConfig) (token *oidc.IDToken, err error) {
-	log := l.WithField("OIDC Url", oidcConfig)
+func JwtAuth(ctx context.Context, jwtToken string, oidcConfig OIDCConfig) (token *oidc.IDToken, err error) {
+	log := logconfig.GetLogCtx(ctx)
 
 	// add token to logger only when tracing
-	if l.GetLevel() == l.TraceLevel {
-		log = log.WithField("JWT", jwtToken)
-	}
+	log.WithField("token_string", jwtToken).Trace("Parsing token")
 
 	provider, err := oidc.NewProvider(context.Background(), oidcConfig.DiscoveryUrl)
 	if err != nil {
@@ -33,7 +31,7 @@ func JwtAuth(jwtToken string, oidcConfig OIDCConfig) (token *oidc.IDToken, err e
 	// validate id_token
 	token, err = provider.Verifier(&config).Verify(context.Background(), jwtToken)
 	if err != nil {
-		log.WithError(err).Error("Failed to validate token")
+		log.WithError(err).Warn("Failed to validate token")
 		return
 	}
 

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/harbourrocks/harbour/pkg/harbourscm/configuration"
 	"github.com/harbourrocks/harbour/pkg/harbourscm/models"
-	"github.com/harbourrocks/harbour/pkg/httphandler/traits"
+	"github.com/harbourrocks/harbour/pkg/httpcontext/traits"
 )
 
 type ManifestModel struct {

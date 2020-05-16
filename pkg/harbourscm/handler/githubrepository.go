@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"github.com/harbourrocks/harbour/pkg/httphandler/traits"
-	"github.com/harbourrocks/harbour/pkg/redisconfig"
+	"github.com/harbourrocks/harbour/pkg/httpcontext/traits"
+	"github.com/harbourrocks/harbour/pkg/redis"
 	l "github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"

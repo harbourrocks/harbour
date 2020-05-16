@@ -2,10 +2,11 @@ package handler
 
 import (
 	"encoding/base64"
-	redis2 "github.com/harbourrocks/harbour/pkg/harbouriam/redis"
-	"github.com/harbourrocks/harbour/pkg/httphandler/traits"
-	"github.com/harbourrocks/harbour/pkg/redisconfig"
-	l "github.com/sirupsen/logrus"
+	"github.com/harbourrocks/harbour/pkg/auth"
+	hRedis "github.com/harbourrocks/harbour/pkg/harbouriam/redis"
+	"github.com/harbourrocks/harbour/pkg/httphelper"
+	"github.com/harbourrocks/harbour/pkg/logconfig"
+	"github.com/harbourrocks/harbour/pkg/redis"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
 )
@@ -14,46 +15,39 @@ type DockerSetPassword struct {
 	Password string `json:"password"`
 }
 
-// DockerPasswordModel is specific for one handler
-type DockerPasswordModel struct {
-	traits.HttpModel
-	traits.IdTokenModel
-	redisconfig.RedisModel
-}
-
-func (h DockerPasswordModel) Handle() {
-	w := h.GetResponse()
-	redisConfig := h.GetRedisConfig()
-	idToken := h.GetToken()
+// DockerPassword
+func DockerPassword(w http.ResponseWriter, r *http.Request) {
+	log := logconfig.GetLogReq(r)
+	client := redisconfig.GetRedisClientReq(r)
+	idToken := auth.GetIdTokenReq(r)
 
 	var model DockerSetPassword
-	if err := h.ReadRequest(&model); err != nil {
+	if err := httphelper.ReadRequest(r, w, &model); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return // error logged in ReadRequest
 	}
 
 	// validate password length, min 5
 	if len(model.Password) < 5 {
-		_ = h.WriteErrorResponse(1000)
+		_ = httphelper.WriteErrorResponse(r, w, 1000)
 		return
 	}
 
 	// hash the password using bcrypt, salt is automatically added during hashing
 	passwordHashed, err := bcrypt.GenerateFromPassword([]byte(model.Password), 12)
 	if err != nil {
-		l.WithError(err).Error("Failed to hash password")
+		log.WithError(err).Error("Failed to hash password")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	// encode with base64 to store as string
 	passwordBase64 := base64.StdEncoding.EncodeToString(passwordHashed)
-	l.Tracef("Hashed password %s", passwordBase64)
+	log.Tracef("Hashed password %s", passwordBase64)
 
 	// save to redis as 'docker-password'
-	client := redisconfig.OpenClient(redisConfig)
-	if err := client.HSet(redis2.IamUserKey(idToken.Subject), "docker-password", passwordBase64).Err(); err != nil {
-		l.WithError(err).Error("Failed to save docker-password")
+	if err := client.HSet(hRedis.IamUserKey(idToken.Subject), "docker-password", passwordBase64).Err(); err != nil {
+		log.WithError(err).Error("Failed to save docker-password")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

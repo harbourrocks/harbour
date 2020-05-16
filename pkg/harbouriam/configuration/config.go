@@ -2,7 +2,7 @@ package configuration
 
 import (
 	"github.com/harbourrocks/harbour/pkg/auth"
-	"github.com/harbourrocks/harbour/pkg/redisconfig"
+	"github.com/harbourrocks/harbour/pkg/redis"
 	l "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"os"
@@ -22,7 +22,6 @@ type DockerOptions struct {
 type Options struct {
 	OIDCClientID     string
 	OIDCClientSecret string
-	OIDCURL          string
 	IAMBaseURL       string
 	Redis            redisconfig.RedisOptions
 	OIDCConfig       auth.OIDCConfig
@@ -34,7 +33,6 @@ func NewDefaultOptions() *Options {
 	s := Options{
 		OIDCClientID:     "",
 		OIDCClientSecret: "",
-		OIDCURL:          "",
 		IAMBaseURL:       "",
 		Redis:            redisconfig.NewDefaultRedisOptions(),
 		OIDCConfig:       auth.DefaultConfig(),
@@ -49,7 +47,6 @@ func ParseViperConfig() *Options {
 
 	s.OIDCClientID = viper.GetString("OIDC_CLIENT_ID")
 	s.OIDCClientSecret = viper.GetString("OIDC_CLIENT_SECRET")
-	s.OIDCURL = viper.GetString("OIDC_URL")
 	s.IAMBaseURL = viper.GetString("IAM_BASE_URL")
 
 	s.OIDCConfig = auth.ParseViperConfig()

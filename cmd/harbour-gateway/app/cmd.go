@@ -4,7 +4,7 @@ import (
 	server "github.com/harbourrocks/harbour/pkg/harbourgateway"
 	"github.com/harbourrocks/harbour/pkg/harbourgateway/configuration"
 	"github.com/harbourrocks/harbour/pkg/logconfig"
-	"github.com/harbourrocks/harbour/pkg/redisconfig"
+	"github.com/harbourrocks/harbour/pkg/redis"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"

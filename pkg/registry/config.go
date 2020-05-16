@@ -7,19 +7,19 @@ import (
 
 // RegistryConfig is the required minimum docker registry connections
 type RegistryConfig struct {
-	Url    string
-	IAMUrl string
+	RegistryUrl            string
+	AuthorizationServerUrl string
 }
 
 // ParseViperConfig tries to map a viper configuration
 func ParseViperConfig() RegistryConfig {
 	var s RegistryConfig
 
-	s.Url = viper.GetString("REGISTRY_URL")
-	s.Url = strings.Trim(s.Url, " /")
+	s.RegistryUrl = viper.GetString("REGISTRY_URL")
+	s.RegistryUrl = strings.Trim(s.RegistryUrl, " /")
 
-	s.IAMUrl = viper.GetString("IAM_BASE_URL")
-	s.IAMUrl = strings.Trim(s.IAMUrl, " /")
+	s.AuthorizationServerUrl = viper.GetString("IAM_BASE_URL")
+	s.AuthorizationServerUrl = strings.Trim(s.AuthorizationServerUrl, " /")
 
 	return s
 }

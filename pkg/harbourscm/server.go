@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/harbourrocks/harbour/pkg/harbourscm/configuration"
 	"github.com/harbourrocks/harbour/pkg/harbourscm/handler"
-	"github.com/harbourrocks/harbour/pkg/httphandler/traits"
-	"github.com/harbourrocks/harbour/pkg/redisconfig"
+	"github.com/harbourrocks/harbour/pkg/httpcontext/traits"
+	"github.com/harbourrocks/harbour/pkg/redis"
 	"github.com/sirupsen/logrus"
 	"net/http"
 )

@@ -10,7 +10,7 @@ func RepositoriesURL() string {
 
 // RepositoriesURL returns the URL to query all repositories
 func (c RegistryConfig) RepositoriesURL() string {
-	return combine(c.Url, RepositoriesURL())
+	return combine(c.RegistryUrl, RepositoriesURL())
 }
 
 // RepositoryTagsURL returns the URL to query all tags of a repository
@@ -23,7 +23,7 @@ func RepositoryTagsURL(repositoryName string) string {
 // RepositoryTagsURL returns the URL to query all tags of a repository
 //  Repository is identified by its name
 func (c RegistryConfig) RepositoryTagsURL(repositoryName string) string {
-	return combine(c.Url, RepositoryTagsURL(repositoryName))
+	return combine(c.RegistryUrl, RepositoryTagsURL(repositoryName))
 }
 
 func TokenURL() string {
@@ -31,7 +31,7 @@ func TokenURL() string {
 }
 
 func (c RegistryConfig) TokenURL(type_, name, action string) string {
-	return fmt.Sprintf("%s?service=%s&scope=%s:%s:%s", combine(c.IAMUrl, TokenURL()), c.Url, type_, name, action)
+	return fmt.Sprintf("%s?service=%s&scope=%s:%s:%s", combine(c.AuthorizationServerUrl, TokenURL()), c.RegistryUrl, type_, name, action)
 }
 
 func combine(host, path string) string {

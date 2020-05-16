@@ -1,17 +1,18 @@
 package cryptography
 
 import (
+	"context"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
-	"github.com/harbourrocks/harbour/pkg/context"
+	"github.com/harbourrocks/harbour/pkg/logconfig"
 	"io/ioutil"
 )
 
 // GenerateX5C returns a x5c signature of the certificate
 //  the certificate is expected to be PEM encoded
-func GenerateX5C(ctx context.HRock, certificatePath string) (x5c []string, err error) {
-	log := ctx.L
+func GenerateX5C(ctx context.Context, certificatePath string) (x5c []string, err error) {
+	log := logconfig.GetLogCtx(ctx)
 
 	log.WithField("certPath", certificatePath).Trace("Generating x5c signature")
 
