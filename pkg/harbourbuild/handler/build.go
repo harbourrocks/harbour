@@ -49,10 +49,11 @@ func (b BuilderModel) Handle() {
 func (b BuilderModel) createBuildEntry(request models.BuildRequest) (string, error) {
 	redisConfig := b.GetRedisConfig()
 	buildId := uuid.New()
-	buildKey := redis.BuildAppKey(buildId.String())
+	buildKey := redis.BuildKey(buildId.String())
 
 	client := redisconfig.OpenClient(redisConfig)
 	err := client.HSet(buildKey,
+		"build_id", buildId.String(),
 		"project", request.Project,
 		"commit", request.Commit,
 		"logs", nil,
