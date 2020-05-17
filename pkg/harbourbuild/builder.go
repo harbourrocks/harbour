@@ -7,7 +7,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"github.com/harbourrocks/harbour/pkg/harbourbuild/models"
-	"github.com/harbourrocks/harbour/pkg/redis"
+	"github.com/harbourrocks/harbour/pkg/redisconfig"
 	"github.com/jhoonb/archivex"
 	l "github.com/sirupsen/logrus"
 	"io"
