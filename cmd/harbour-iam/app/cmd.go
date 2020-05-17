@@ -18,7 +18,7 @@ func NewIAMServerCommand() *cobra.Command {
 authentication and authorization for the harbour environment.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			// load OIDC  config
+			// load IAM config
 			s := configuration.ParseViperConfig()
 
 			// configure logging
