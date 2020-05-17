@@ -12,7 +12,7 @@ import (
 	hRedis "github.com/harbourrocks/harbour/pkg/harbouriam/redis"
 	"github.com/harbourrocks/harbour/pkg/httphelper"
 	"github.com/harbourrocks/harbour/pkg/logconfig"
-	"github.com/harbourrocks/harbour/pkg/redis"
+	"github.com/harbourrocks/harbour/pkg/redisconfig"
 	"github.com/harbourrocks/harbour/pkg/registry/models"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"

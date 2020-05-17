@@ -5,7 +5,7 @@ import (
 	"github.com/harbourrocks/harbour/pkg/configuration"
 	"github.com/harbourrocks/harbour/pkg/httpcontext"
 	"github.com/harbourrocks/harbour/pkg/logconfig"
-	"github.com/harbourrocks/harbour/pkg/redis"
+	"github.com/harbourrocks/harbour/pkg/redisconfig"
 	"net/http"
 )
 

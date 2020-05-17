@@ -4,7 +4,7 @@ import (
 	"github.com/harbourrocks/harbour/pkg/harbouriam"
 	"github.com/harbourrocks/harbour/pkg/harbouriam/configuration"
 	"github.com/harbourrocks/harbour/pkg/logconfig"
-	"github.com/harbourrocks/harbour/pkg/redis"
+	"github.com/harbourrocks/harbour/pkg/redisconfig"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"

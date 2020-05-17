@@ -30,6 +30,12 @@ docker-compose version 1.25.4, build 8d51620a
 
   *Script only works with docker installed before.*
 
+* The actual registry that stores the images is the official docker registry. Simply setup the registry by executing this script: [scripts/run-redis.sh](scripts/run-redis.sh). This will also create all certificates that are required for authenticating with the registry.
+
+  *Script only works with docker installed before.*
+  
+  *You will also have to adapt the REGISTRY_AUTH_TOKEN_REALM env variable which is the address of the IAM service on your PC. This has to be the ip address of your network adapter, because the registry (running inside a container) has to connect with it and localhost won't work from inside a container. Change the env variable in this file: [deployments/registry/docker-compose.yml](deployments/registry/docker-compose.yml)*
+
 * We are using IntelliJ 2020 for development. You should open the project root as IntelliJ project. This will give you several run configurations which should work for the development environment.
 
   FOR THE TIME THIS PROJECT IS BEING DEVELOPED BY WEB SYSTEMS STUDENTS TRY TO WORK WITH THE PROVIDED CONFIGURATION.
