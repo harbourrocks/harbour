@@ -3,14 +3,16 @@ package configuration
 import (
 	"github.com/harbourrocks/harbour/pkg/auth"
 	"github.com/harbourrocks/harbour/pkg/redisconfig"
+	"github.com/harbourrocks/harbour/pkg/registry"
 	"github.com/spf13/viper"
 )
 
 type Options struct {
-	ContextPath string
-	RepoPath    string
-	Redis       redisconfig.RedisOptions
-	OIDCConfig  auth.OIDCConfig
+	ContextPath    string
+	RepoPath       string
+	Redis          redisconfig.RedisOptions
+	OIDCConfig     auth.OIDCConfig
+	DockerRegistry registry.RegistryConfig
 }
 
 func NewDefaultOptions() *Options {
@@ -31,5 +33,7 @@ func ParseViperConfig() *Options {
 	s.RepoPath = viper.GetString("REPO_PATH")
 	s.OIDCConfig = auth.ParseViperConfig()
 	s.Redis = redisconfig.ParseViperConfig()
+	s.DockerRegistry = registry.ParseViperConfig()
+
 	return s
 }

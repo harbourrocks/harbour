@@ -23,12 +23,12 @@ func RunBuildServer(o *configuration.Options) error {
 
 	logrus.Info("Started Harbour builder ")
 
-	model := handler.NewBuilderModel(buildChan)
+	model := handler.NewBuilderModel(buildChan, o)
 
 	pipeline := httppipeline.DefaultPipeline(o.OIDCConfig, o.Redis)
 	pipeline = httppipeline.WithConfig(pipeline, configuration.BuildConfigKey, *o)
 
-	http.HandleFunc("/refresh", pipeline(model.BuildImage))
+	http.HandleFunc("/build", pipeline(model.BuildImage))
 
 	bindAddress := "127.0.0.1:5200"
 	logrus.Info(fmt.Sprintf("Listening on httphandler://%s/", bindAddress))

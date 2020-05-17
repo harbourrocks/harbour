@@ -3,6 +3,8 @@ package harbourbuild
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
@@ -121,4 +123,24 @@ func (b Builder) createBuildContext(project string) (*os.File, error) {
 	}
 
 	return dockerBuildCtx, nil
+}
+
+func (b Builder) pushImage(image string, token string) error {
+	authConfig := types.AuthConfig{IdentityToken: token}
+	encodedJSON, err := json.Marshal(authConfig)
+	if err != nil {
+		return err
+	}
+
+	authStr := base64.URLEncoding.EncodeToString(encodedJSON)
+
+	out, err := b.cli.ImagePush(b.ctx, image, types.ImagePushOptions{RegistryAuth: authStr})
+	if err != nil {
+		return err
+	}
+
+	defer out.Close()
+	io.Copy(os.Stdout, out)
+
+	return nil
 }

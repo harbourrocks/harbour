@@ -8,6 +8,7 @@
       <env name="OIDC_CLIENT_ID" value="d8dfd041-5a71-465d-8d15-7d2b91c0b1ba" />
       <env name="REPO_PATH" value="./test/repos/" />
       <env name="CONTEXT_PATH" value="./test/buildcontext/" />
+      <env name="REGISTRY_URL" value="http://localhost:5000" />
     </envs>
     <kind value="PACKAGE" />
     <filePath value="$PROJECT_DIR$/cmd/harbour-build/main.go" />
