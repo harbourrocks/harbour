@@ -26,8 +26,8 @@ func GetOidcTokenReq(r *http.Request) *oidc.IDToken {
 
 func GetOidcTokenCtx(ctx context.Context) *oidc.IDToken {
 	if oidcToken := ctx.Value(OidcTokenKey); oidcToken != nil {
-		token := oidcToken.(oidc.IDToken)
-		return &token
+		token := oidcToken.(*oidc.IDToken)
+		return token
 	} else {
 		return nil
 	}
@@ -65,8 +65,8 @@ func UseOidcToken(next http.HandlerFunc, oidcConfig OIDCConfig) http.HandlerFunc
 		if idTokenStr := GetOidcTokenStrCtx(ctx); idTokenStr != "" {
 			idToken, err := JwtAuth(ctx, idTokenStr, oidcConfig) // error logged in JwtAuth
 
-			if err != nil {
-				ctx = context.WithValue(ctx, idTokenStr, idToken)
+			if err == nil {
+				ctx = context.WithValue(ctx, OidcTokenKey, idToken)
 			}
 		}
 
