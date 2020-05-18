@@ -20,9 +20,9 @@ func RunIAMServer(o *configuration.Options) error {
 
 	http.HandleFunc("/docker/password", pipeline(handler.DockerPassword))
 
-	unAuthPipeline := httppipeline.UnAuthPipeline(o.Redis)
-	unAuthPipeline = httppipeline.WithConfig(unAuthPipeline, configuration.IAMConfigKey, *o)
-	http.HandleFunc("/docker/auth/token", unAuthPipeline(handler.DockerToken))
+	semiAuthPipeline := httppipeline.SemiAuthPipeline(o.OIDCConfig, o.Redis)
+	semiAuthPipeline = httppipeline.WithConfig(semiAuthPipeline, configuration.IAMConfigKey, *o)
+	http.HandleFunc("/docker/auth/token", semiAuthPipeline(handler.DockerToken))
 
 	bindAddress := "0.0.0.0:5100"
 	logrus.Info(fmt.Sprintf("Listening on http://%s/", bindAddress))
