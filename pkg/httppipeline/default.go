@@ -44,3 +44,18 @@ func UnAuthPipeline(redisConfig redisconfig.RedisOptions) func(http.HandlerFunc)
 
 	return fn
 }
+
+func SemiAuthPipeline(oidcConfig auth.OIDCConfig, redisConfig redisconfig.RedisOptions) func(http.HandlerFunc) http.HandlerFunc {
+	fn := func(handler http.HandlerFunc) http.HandlerFunc {
+		return httpcontext.
+			UseRequestId(logconfig.
+				UseLogger(auth.
+					UseOidcTokenStr(auth.
+						UseOidcToken(auth.
+							UseIdToken(redisconfig.
+								UseRedisConfig(httpcontext.
+									UseJsonResponse(handler), redisConfig)), oidcConfig))))
+	}
+
+	return fn
+}
