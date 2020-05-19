@@ -9,6 +9,7 @@
       <env name="REPO_PATH" value="./test/repos/" />
       <env name="CONTEXT_PATH" value="./test/buildcontext/" />
       <env name="REGISTRY_URL" value="http://localhost:5000" />
+      <env name="IAM_BASE_URL" value="http://localhost:5100" />
     </envs>
     <kind value="PACKAGE" />
     <filePath value="$PROJECT_DIR$/cmd/harbour-build/main.go" />

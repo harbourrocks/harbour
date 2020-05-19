@@ -85,7 +85,19 @@ func (b Builder) buildImage(job models.BuildJob) {
 	}
 
 	redisClient.HSet(job.BuildKey, "build_status", "Success", "logs", logs)
-	l.Trace("Image was built")
+	l.Tracef("Image %s was built", job.Request.Project)
+
+	imageString := b.getImageString(job.RegistryUrl, job.Request.Project)
+	if len(job.Request.Tags) > 0 {
+		imageString += ":" + job.Request.Tags[0]
+	}
+
+	if err = b.pushImage(imageString, job.RegistryToken); err != nil {
+		l.WithError(err).Error("Error while pushing image to registry")
+		return
+	}
+
+	l.Tracef("Image %s was pushed to registry %s", job.Request.Project, job.RegistryUrl)
 }
 
 func (b Builder) cleanUpAfterBuild(buildContext *os.File, logs io.ReadCloser) {
@@ -96,12 +108,6 @@ func (b Builder) cleanUpAfterBuild(buildContext *os.File, logs io.ReadCloser) {
 		l.WithError(err).Error("Error while cleaning up build context")
 		return
 	}
-}
-
-//TODO Communicate with Harbour SCM in order to receive the path to the project-files
-func (b Builder) getProjectPath(project string) (string, error) {
-	// Just returns a demo path
-	return fmt.Sprintf(b.repoPath+"%s", project), nil
 }
 
 func (b Builder) createBuildContext(project string) (*os.File, error) {
@@ -126,21 +132,48 @@ func (b Builder) createBuildContext(project string) (*os.File, error) {
 }
 
 func (b Builder) pushImage(image string, token string) error {
-	authConfig := types.AuthConfig{IdentityToken: token}
+	authConfig := types.AuthConfig{RegistryToken: token}
 	encodedJSON, err := json.Marshal(authConfig)
 	if err != nil {
 		return err
 	}
 
 	authStr := base64.URLEncoding.EncodeToString(encodedJSON)
+	options := types.ImagePushOptions{RegistryAuth: authStr}
 
-	out, err := b.cli.ImagePush(b.ctx, image, types.ImagePushOptions{RegistryAuth: authStr})
+	out, err := b.cli.ImagePush(b.ctx, image, options)
 	if err != nil {
 		return err
 	}
 
-	defer out.Close()
-	io.Copy(os.Stdout, out)
+	defer func() {
+		err = out.Close()
+		if err != nil {
+			l.WithError(err).Error("Error while closing file")
+			return
+		}
+	}()
+
+	buf := new(bytes.Buffer)
+	_, err = buf.ReadFrom(out)
+	if err != nil {
+		return err
+	}
+
+	logs := buf.String()
+	if strings.Contains(logs, "errorDetail") {
+		return fmt.Errorf("unable to push image: %s", logs)
+	}
 
 	return nil
+}
+
+func (b Builder) getImageString(registryUrl string, image string) string {
+	return fmt.Sprintf("%s/%s", strings.Split(registryUrl, "//")[1], image)
+}
+
+//TODO Communicate with Harbour SCM in order to receive the path to the project-files
+func (b Builder) getProjectPath(project string) (string, error) {
+	// Just returns a demo path
+	return fmt.Sprintf(b.repoPath+"%s", project), nil
 }

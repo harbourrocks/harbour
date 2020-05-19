@@ -36,7 +36,7 @@ func (b BuilderModel) BuildImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	registryToken, err := fetchRegistryToken(r.Context(), b.config)
+	registryToken, err := fetchRegistryToken(r.Context(), buildRequest.Project, b.config)
 	if err != nil {
 		return // Error is already logged in get
 	}
@@ -47,7 +47,12 @@ func (b BuilderModel) BuildImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	b.buildChan <- models.BuildJob{Request: buildRequest, BuildKey: buildKey, RegistryToken: registryToken}
+	b.buildChan <- models.BuildJob{
+		Request:       buildRequest,
+		BuildKey:      buildKey,
+		RegistryToken: registryToken,
+		RegistryUrl:   b.config.DockerRegistry.RegistryUrl,
+	}
 
 	log.Trace("Build job enqueued")
 	w.WriteHeader(http.StatusAccepted)
@@ -74,9 +79,9 @@ func createBuildEntry(ctx context.Context, request models.BuildRequest) (string,
 	return buildKey, nil
 }
 
-func fetchRegistryToken(ctx context.Context, registry *configuration.Options) (string, error) {
+func fetchRegistryToken(ctx context.Context, repository string, registry *configuration.Options) (string, error) {
 	oidcTokenStr := auth.GetOidcTokenStrCtx(ctx)
-	tokenUrl := registry.DockerRegistry.TokenURL("repository", "test", "push")
+	tokenUrl := registry.DockerRegistry.TokenURL("repository", repository, "push,pull")
 
 	var registryToken string
 	var tokenResponse registryModels.DockerTokenResponse
