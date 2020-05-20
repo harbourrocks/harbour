@@ -5,6 +5,7 @@ type GithubManifest struct {
 	Url                string             `json:"url"`
 	HookAttributes     HookAttributes     `json:"hook_attributes"`
 	RedirectUrl        string             `json:"redirect_url"`
+	Public             bool               `json:"public"`
 	DefaultPermissions DefaultPermissions `json:"default_permissions"`
 	DefaultEvents      []GithubEventType  `json:"default_events"`
 }

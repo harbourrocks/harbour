@@ -58,6 +58,8 @@ func ReadRequest(r *http.Request, w http.ResponseWriter, v interface{}) (err err
 		return
 	}
 
+	logrus.Trace("Request Model: %+v", v)
+
 	return
 }
 

@@ -13,7 +13,7 @@ import (
 
 // Get issues a GET request against the url.
 //The response is unmarshalled into response
-func Get(ctx context.Context, url string, response interface{}, token string) (resp *http.Response, err error) {
+func Get(ctx context.Context, url string, response interface{}, token string, header map[string]string) (resp *http.Response, err error) {
 	log := logconfig.GetLogCtx(ctx)
 	reqId := httpcontext.GetReqIdCtx(ctx)
 
@@ -33,6 +33,12 @@ func Get(ctx context.Context, url string, response interface{}, token string) (r
 		req.Header.Add(httpcontext.ReqIdHeaderName, reqId)
 	}
 
+	if header != nil {
+		for name, value := range header {
+			req.Header.Add(name, value)
+		}
+	}
+
 	resp, err = http.DefaultClient.Do(req)
 	if err != nil {
 		l.
@@ -50,14 +56,39 @@ func Get(ctx context.Context, url string, response interface{}, token string) (r
 // Post issues a POST request against the url.
 // The POST payload is specified by body. If body is nil then no body is sent at all.
 // The response is unmarshalled into response.
-func Post(ctx context.Context, url string, response interface{}, _ interface{}) (resp *http.Response, err error) {
+func Post(ctx context.Context, url string, response interface{}, _ interface{}, token string, header map[string]string) (resp *http.Response, err error) {
 	log := logconfig.GetLogCtx(ctx)
+	reqId := httpcontext.GetReqIdCtx(ctx)
 
-	resp, err = http.Post(url, "application/json", nil)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, url, nil)
+	if err != nil {
+		log.
+			WithField("url", url).WithError(err).
+			Error("Failed to create request")
+		return
+	}
+
+	if token != "" {
+		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))
+	}
+
+	if reqId != "" {
+		req.Header.Add(httpcontext.ReqIdHeaderName, reqId)
+	}
+
+	req.Header.Add("Content-Type", "application/json")
+
+	if header != nil {
+		for name, value := range header {
+			req.Header.Add(name, value)
+		}
+	}
+
+	resp, err = http.DefaultClient.Do(req)
 	if err != nil {
 		log.
 			WithError(err).
-			WithField("Method", resp.Request.Method).
+			WithField("Method", req.Method).
 			WithField("Url", url).
 			Error("Failed to send request")
 		return

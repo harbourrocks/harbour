@@ -30,7 +30,7 @@ func acquireDockerToken(ctx context.Context, tokenUrl string) (token string, err
 	oidcTokenStr := auth.GetOidcTokenStrCtx(ctx)
 
 	var tokenResponse models.DockerTokenResponse
-	resp, err := apiclient.Get(ctx, tokenUrl, &tokenResponse, oidcTokenStr)
+	resp, err := apiclient.Get(ctx, tokenUrl, &tokenResponse, oidcTokenStr, nil)
 	if err != nil {
 		return // error logged in Get
 	}
