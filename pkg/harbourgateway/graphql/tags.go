@@ -47,7 +47,7 @@ func TagsField(options configuration.Options) *graphql.Field {
 
 			// query tags of repository from docker registry
 			var regTags models.Tags
-			_, err = apiclient.Get(p.Context, options.DockerRegistry.RepositoryTagsURL(repositoryQuery), &regTags, dockerToken)
+			_, err = apiclient.Get(p.Context, options.DockerRegistry.RepositoryTagsURL(repositoryQuery), &regTags, dockerToken, nil)
 			if err != nil {
 				return nil, err
 			}

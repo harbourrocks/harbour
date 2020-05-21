@@ -4,22 +4,20 @@ import (
 	"fmt"
 	"github.com/harbourrocks/harbour/pkg/harbourscm/configuration"
 	"github.com/harbourrocks/harbour/pkg/harbourscm/models"
-	"github.com/harbourrocks/harbour/pkg/httpcontext/traits"
+	"github.com/harbourrocks/harbour/pkg/httphelper"
+	"net/http"
 )
 
-type ManifestModel struct {
-	traits.HttpModel
-}
+func Manifest(w http.ResponseWriter, r *http.Request) {
+	scmConfig := configuration.GetSCMConfigReq(r)
 
-func (h *ManifestModel) Handle(config configuration.Options) {
-	hostUrl := config.HostUrl
-
-	redirectUrl := fmt.Sprintf("%s/scm/github/app", hostUrl.String())
-	webhookUrl := fmt.Sprintf("%s/scm/github/hooks", hostUrl.String())
+	homepage := scmConfig.HostUrl.String()
+	redirectUrl := fmt.Sprintf("%s/callback", scmConfig.HostUrl.String())
+	webhookUrl := fmt.Sprintf("%s/callback", scmConfig.HostUrl.String())
 
 	manifest := models.GithubManifest{
 		Name:          "harbour.rocks",
-		Url:           hostUrl.String(),
+		Url:           homepage,
 		RedirectUrl:   redirectUrl,
 		DefaultEvents: []models.GithubEventType{models.Push},
 		HookAttributes: models.HookAttributes{
@@ -32,5 +30,5 @@ func (h *ManifestModel) Handle(config configuration.Options) {
 		},
 	}
 
-	_ = h.WriteResponse(manifest)
+	_ = httphelper.WriteResponse(r, w, manifest)
 }
