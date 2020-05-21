@@ -11,8 +11,7 @@ import (
 	"github.com/harbourrocks/harbour/pkg/harbourbuild/models"
 	"github.com/harbourrocks/harbour/pkg/redisconfig"
 	"github.com/jhoonb/archivex"
-	l "github.com/sirupsen/logrus"
-	"io"
+	"github.com/sirupsen/logrus"
 	"os"
 	"strings"
 )
@@ -50,12 +49,13 @@ func (b Builder) Start() {
 }
 
 func (b Builder) buildImage(job models.BuildJob) {
+	log := logrus.WithField("reqId", job.ReqId)
 	redisClient := redisconfig.OpenClient(b.redisOptions)
 	redisClient.HSet(job.BuildKey, "build_status", "Running")
 
 	buildCtx, err := b.createBuildContext(job.Request.Project)
 	if err != nil {
-		l.WithError(err).Error("Failed to create build context")
+		log.WithError(err).Error("Failed to create build context")
 		return
 	}
 
@@ -66,16 +66,24 @@ func (b Builder) buildImage(job models.BuildJob) {
 
 	resp, err := b.cli.ImageBuild(b.ctx, buildCtx, opt)
 	if err != nil {
-		l.WithError(err).Error("Failed to build image")
+		log.WithError(err).Error("Failed to build image")
 		return
 	}
 
-	defer b.cleanUpAfterBuild(buildCtx, resp.Body)
+	defer func() {
+		err := buildCtx.Close()
+		err = os.Remove(buildCtx.Name())
+		err = resp.Body.Close()
+		if err != nil {
+			log.WithError(err).Error("Error while cleaning up build context")
+			return
+		}
+	}()
 
 	buf := new(bytes.Buffer)
 	_, err = buf.ReadFrom(resp.Body)
 	if err != nil {
-		l.WithError(err).Error("Failed to parse response body")
+		log.WithError(err).Error("Failed to parse response body")
 	}
 
 	logs := buf.String()
@@ -85,7 +93,7 @@ func (b Builder) buildImage(job models.BuildJob) {
 	}
 
 	redisClient.HSet(job.BuildKey, "build_status", "Success", "logs", logs)
-	l.Tracef("Image %s was built", job.Request.Project)
+	log.Tracef("Image %s was built", job.Request.Project)
 
 	imageString := b.getImageString(job.RegistryUrl, job.Request.Project)
 	if len(job.Request.Tags) > 0 {
@@ -93,28 +101,17 @@ func (b Builder) buildImage(job models.BuildJob) {
 	}
 
 	if err = b.pushImage(imageString, job.RegistryToken); err != nil {
-		l.WithError(err).Error("Error while pushing image to registry")
+		log.WithError(err).Error("Error while pushing image to registry")
 		return
 	}
 
-	l.Tracef("Image %s was pushed to registry %s", job.Request.Project, job.RegistryUrl)
-}
-
-func (b Builder) cleanUpAfterBuild(buildContext *os.File, logs io.ReadCloser) {
-	err := buildContext.Close()
-	err = os.Remove(buildContext.Name())
-	err = logs.Close()
-	if err != nil {
-		l.WithError(err).Error("Error while cleaning up build context")
-		return
-	}
+	log.Tracef("Image %s was pushed to registry %s", job.Request.Project, job.RegistryUrl)
 }
 
 func (b Builder) createBuildContext(project string) (*os.File, error) {
 	buildContext := fmt.Sprintf(b.ctxPath+"%s.tar", project)
 	projectPath, err := b.getProjectPath(project)
 	if err != nil {
-		l.WithError(err).Error("Failed to receive the project files")
 		return nil, err
 	}
 
@@ -149,7 +146,6 @@ func (b Builder) pushImage(image string, token string) error {
 	defer func() {
 		err = out.Close()
 		if err != nil {
-			l.WithError(err).Error("Error while closing file")
 			return
 		}
 	}()

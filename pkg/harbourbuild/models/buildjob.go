@@ -7,4 +7,5 @@ type BuildJob struct {
 	BuildKey      string
 	RegistryToken string
 	RegistryUrl   string
+	ReqId         string
 }

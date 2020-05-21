@@ -9,6 +9,7 @@ import (
 	"github.com/harbourrocks/harbour/pkg/harbourbuild/configuration"
 	"github.com/harbourrocks/harbour/pkg/harbourbuild/models"
 	"github.com/harbourrocks/harbour/pkg/harbourbuild/redis"
+	"github.com/harbourrocks/harbour/pkg/httpcontext"
 	"github.com/harbourrocks/harbour/pkg/httphelper"
 	"github.com/harbourrocks/harbour/pkg/logconfig"
 	"github.com/harbourrocks/harbour/pkg/redisconfig"
@@ -52,6 +53,7 @@ func (b BuilderModel) BuildImage(w http.ResponseWriter, r *http.Request) {
 		BuildKey:      buildKey,
 		RegistryToken: registryToken,
 		RegistryUrl:   b.config.DockerRegistry.RegistryUrl,
+		ReqId:         httpcontext.GetReqIdCtx(r.Context()),
 	}
 
 	log.Trace("Build job enqueued")

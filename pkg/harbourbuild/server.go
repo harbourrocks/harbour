@@ -19,6 +19,7 @@ func RunBuildServer(o *configuration.Options) error {
 		logrus.Fatal(err)
 		return err
 	}
+
 	builder.Start()
 
 	logrus.Info("Started Harbour builder ")
