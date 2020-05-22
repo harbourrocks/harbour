@@ -1,8 +1,8 @@
 package models
 
 type BuildRequest struct {
-	Dockerfile string   `json:"dockerfile"`
-	Tags       []string `json:"tags"`
-	Project    string   `json:"project"`
-	Commit     string   `json:"commit"`
+	Dockerfile string `json:"dockerfile"`
+	Tag        string `json:"tag"`
+	Repository string `json:"repository"`
+	Commit     string `json:"commit"`
 }

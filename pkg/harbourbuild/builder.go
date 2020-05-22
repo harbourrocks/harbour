@@ -53,14 +53,15 @@ func (b Builder) buildImage(job models.BuildJob) {
 	redisClient := redisconfig.OpenClient(b.redisOptions)
 	redisClient.HSet(job.BuildKey, "build_status", "Running")
 
-	buildCtx, err := b.createBuildContext(job.Request.Project)
+	buildCtx, err := b.createBuildContext(job.Request.Repository)
 	if err != nil {
 		log.WithError(err).Error("Failed to create build context")
 		return
 	}
 
+	tag := []string{b.getImageString(job.RegistryUrl, job.Request.Repository, job.Request.Tag)}
 	opt := types.ImageBuildOptions{
-		Tags:       job.Request.Tags,
+		Tags:       tag,
 		Dockerfile: job.Request.Dockerfile,
 	}
 
@@ -87,25 +88,23 @@ func (b Builder) buildImage(job models.BuildJob) {
 	}
 
 	logs := buf.String()
+	fmt.Println(logs)
 	if strings.Contains(logs, "errorDetail") {
 		redisClient.HSet(job.BuildKey, "build_status", "Failed", "logs", logs)
 		return
 	}
 
 	redisClient.HSet(job.BuildKey, "build_status", "Success", "logs", logs)
-	log.Tracef("Image %s was built", job.Request.Project)
+	log.Tracef("Image %s was built", job.Request.Repository)
 
-	imageString := b.getImageString(job.RegistryUrl, job.Request.Project)
-	if len(job.Request.Tags) > 0 {
-		imageString += ":" + job.Request.Tags[0]
-	}
+	imageString := b.getImageString(job.RegistryUrl, job.Request.Repository, job.Request.Tag)
 
 	if err = b.pushImage(imageString, job.RegistryToken); err != nil {
 		log.WithError(err).Error("Error while pushing image to registry")
 		return
 	}
 
-	log.Tracef("Image %s was pushed to registry %s", job.Request.Project, job.RegistryUrl)
+	log.Tracef("Image %s was pushed to registry %s", job.Request.Repository, job.RegistryUrl)
 }
 
 func (b Builder) createBuildContext(project string) (*os.File, error) {
@@ -164,8 +163,11 @@ func (b Builder) pushImage(image string, token string) error {
 	return nil
 }
 
-func (b Builder) getImageString(registryUrl string, image string) string {
-	return fmt.Sprintf("%s/%s", strings.Split(registryUrl, "//")[1], image)
+func (b Builder) getImageString(registryUrl string, repository string, tag string) string {
+	if tag != "" {
+		return fmt.Sprintf("%s/%s:%s", strings.Split(registryUrl, "//")[1], repository, tag)
+	}
+	return fmt.Sprintf("%s/%s", strings.Split(registryUrl, "//")[1], repository)
 }
 
 //TODO Communicate with Harbour SCM in order to receive the path to the project-files

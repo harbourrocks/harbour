@@ -24,9 +24,18 @@ func RunGatewayServer(o *configuration.Options) error {
 			},
 		})
 
+	var mutationType = graphql.NewObject(
+		graphql.ObjectConfig{
+			Name: "Mutation",
+			Fields: graphql.Fields{
+				"triggerBuild": graphql2.TriggerBuildField(),
+			},
+		})
+
 	var schema, _ = graphql.NewSchema(
 		graphql.SchemaConfig{
-			Query: queryType,
+			Query:    queryType,
+			Mutation: mutationType,
 		},
 	)
 

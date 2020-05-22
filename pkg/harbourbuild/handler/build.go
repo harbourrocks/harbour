@@ -37,7 +37,7 @@ func (b BuilderModel) BuildImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	registryToken, err := fetchRegistryToken(r.Context(), buildRequest.Project, b.config)
+	registryToken, err := fetchRegistryToken(r.Context(), buildRequest.Repository, b.config)
 	if err != nil {
 		return // Error is already logged in get
 	}
@@ -68,10 +68,9 @@ func createBuildEntry(ctx context.Context, request models.BuildRequest) (string,
 
 	err := client.HSet(buildKey,
 		"build_id", buildId.String(),
-		"project", request.Project,
+		"repository", request.Repository,
 		"commit", request.Commit,
 		"logs", nil,
-		"repository", request.Project,
 		"build_status", "Pending").Err()
 
 	if err != nil {
@@ -88,7 +87,7 @@ func fetchRegistryToken(ctx context.Context, repository string, registry *config
 	var registryToken string
 	var tokenResponse registryModels.DockerTokenResponse
 
-	resp, err := apiclient.Get(ctx, tokenUrl, &tokenResponse, oidcTokenStr)
+	resp, err := apiclient.Get(ctx, tokenUrl, &tokenResponse, oidcTokenStr, nil)
 	if err != nil {
 		return registryToken, err
 	}
