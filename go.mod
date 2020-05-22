@@ -12,6 +12,7 @@ require (
 	github.com/docker/docker v17.12.0-ce-rc1.0.20200406100148-5a685dc7e4e3+incompatible
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.4.0 // indirect
+	github.com/go-git/go-git/v5 v5.0.0
 	github.com/go-redis/redis/v7 v7.2.0
 	github.com/google/uuid v1.1.1
 	github.com/gorilla/mux v1.7.4 // indirect
@@ -25,7 +26,7 @@ require (
 	github.com/spf13/cobra v0.0.7
 	github.com/spf13/viper v1.4.0
 	github.com/stretchr/testify v1.5.1 // indirect
-	golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
+	golang.org/x/crypto v0.0.0-20200302210943-78000ba7a073
 	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d // indirect
 	gopkg.in/square/go-jose.v2 v2.4.1 // indirect

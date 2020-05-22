@@ -6,6 +6,7 @@ import (
 	l "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"net/url"
+	"os"
 )
 
 // Options defines all options available to configure the IAM server.
@@ -15,6 +16,7 @@ type Options struct {
 	UiUrl             *url.URL
 	Redis             redisconfig.RedisOptions
 	OIDCConfig        auth.OIDCConfig
+	CheckoutPath      string
 }
 
 // NewDefaultOptions returns the default options
@@ -40,6 +42,7 @@ func NewDefaultOptions() *Options {
 		UiUrl:             uiUrl,
 		Redis:             redisconfig.NewDefaultRedisOptions(),
 		OIDCConfig:        auth.DefaultConfig(),
+		CheckoutPath:      "",
 	}
 
 	return &s
@@ -65,6 +68,13 @@ func ParseViperConfig() *Options {
 		l.WithError(err).Fatalf("UiUrl is invalid")
 	} else {
 		s.UiUrl = u
+	}
+
+	s.CheckoutPath = viper.GetString("CHECKOUT_PATH")
+	if s.CheckoutPath == "" {
+		l.Fatal("Missing CHECKOUT_PATH")
+	} else if path, err := os.Stat(s.CheckoutPath); os.IsNotExist(err) || !path.IsDir() {
+		l.Fatal("CHECKOUT_PATH not found or a file")
 	}
 
 	s.Redis = redisconfig.ParseViperConfig()

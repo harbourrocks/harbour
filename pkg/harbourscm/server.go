@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/harbourrocks/harbour/pkg/harbourscm/configuration"
 	"github.com/harbourrocks/harbour/pkg/harbourscm/handler"
+	"github.com/harbourrocks/harbour/pkg/harbourscm/worker"
 	"github.com/harbourrocks/harbour/pkg/httppipeline"
 	"github.com/sirupsen/logrus"
 	"net/http"
@@ -16,8 +17,14 @@ func RunSCMServer(o *configuration.Options) error {
 	pipeline := httppipeline.DefaultPipeline(o.OIDCConfig, o.Redis)
 	pipeline = httppipeline.WithConfig(pipeline, configuration.SCMConfigKey, *o)
 
+	githubCh := make(chan worker.GithubCheckoutTask)
+	checkoutHandler := handler.CheckoutHandler{
+		Github: githubCh,
+	}
+
 	http.HandleFunc("/scm/github/manifest", pipeline(handler.Manifest))
 	http.HandleFunc("/scm/github/register", pipeline(handler.GithubManualRegister))
+	http.HandleFunc("/checkout", pipeline(checkoutHandler.Checkout))
 
 	unPipeline := httppipeline.UnAuthPipeline(o.Redis)
 	unPipeline = httppipeline.WithConfig(unPipeline, configuration.SCMConfigKey, *o)
@@ -34,6 +41,11 @@ func RunSCMServer(o *configuration.Options) error {
 	http.HandleFunc("/scm/github/callback", func(w http.ResponseWriter, r *http.Request) {
 		logrus.Trace(r)
 	})
+
+	// start worker
+	go worker.CheckoutWorker{
+		Github: githubCh,
+	}.DoWork()
 
 	bindAddress := "0.0.0.0:5300"
 	logrus.Info(fmt.Sprintf("Listening on httphandler://%s/", bindAddress))

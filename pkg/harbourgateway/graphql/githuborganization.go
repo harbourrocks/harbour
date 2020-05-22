@@ -64,6 +64,10 @@ var githubRepositoryType = graphql.NewObject(
 				Type:        graphql.Int,
 				Description: "The identification for a github repository.",
 			},
+			"scm_id": &graphql.Field{
+				Type:        graphql.String,
+				Description: "A unique identifier withing whole harbour.",
+			},
 			"name": &graphql.Field{
 				Type:        graphql.String,
 				Description: "The display name of the repository.",
@@ -73,8 +77,9 @@ var githubRepositoryType = graphql.NewObject(
 )
 
 type SCMGithubRepositoriesResponse struct {
-	Id   int    `json:"id"`
-	Name string `json:"name"`
+	Id    int    `json:"id"`
+	SCMId int    `json:"scm_id"`
+	Name  string `json:"name"`
 }
 
 func GithubRepositoriesField(options configuration.Options) *graphql.Field {
