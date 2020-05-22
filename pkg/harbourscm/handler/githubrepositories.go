@@ -2,6 +2,7 @@ package handler
 
 import (
 	"github.com/harbourrocks/harbour/pkg/apiclient"
+	"github.com/harbourrocks/harbour/pkg/harbourscm/common"
 	"github.com/harbourrocks/harbour/pkg/harbourscm/github"
 	"github.com/harbourrocks/harbour/pkg/harbourscm/models"
 	"github.com/harbourrocks/harbour/pkg/httphelper"
@@ -10,8 +11,9 @@ import (
 )
 
 type OrganizationRepositoriesResponse struct {
-	Id   int    `json:"id"`
-	Name string `json:"name"`
+	Id    int    `json:"id"`
+	SCMId string `json:"scm_id"`
+	Name  string `json:"name"`
 }
 
 func OrganizationRepositories(w http.ResponseWriter, r *http.Request) {
@@ -52,8 +54,9 @@ func OrganizationRepositories(w http.ResponseWriter, r *http.Request) {
 	repositoriesResponse := make([]OrganizationRepositoriesResponse, len(repositories))
 	for i, repository := range repositories {
 		repositoriesResponse[i] = OrganizationRepositoriesResponse{
-			Id:   repository.Id,
-			Name: repository.Name,
+			Id:    repository.Id,
+			SCMId: common.GenerateGithubId(orgLogin, repository.Name),
+			Name:  repository.Name,
 		}
 	}
 
