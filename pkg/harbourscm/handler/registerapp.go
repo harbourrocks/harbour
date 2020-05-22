@@ -67,10 +67,10 @@ func RegisterApp(w http.ResponseWriter, r *http.Request) {
 		"name", appConfiguration.Name,
 		"nodeId", appConfiguration.NodeId,
 		"id", appConfiguration.Id,
-		"owner_id", appConfiguration.Owner.ID,
-		"owner_avatarUrl", appConfiguration.Owner.AvatarURL,
+		"owner_id", appConfiguration.Owner.Id,
+		"owner_avatarUrl", appConfiguration.Owner.AvatarUrl,
 		"owner_login", appConfiguration.Owner.Login,
-		"owner_nodeId", appConfiguration.Owner.NodeID,
+		"owner_nodeId", appConfiguration.Owner.NodeId,
 		"type", appConfiguration.Owner.Type).Err()
 	if err != nil {
 		log.WithError(err).Error("Failed to persist github app config")
@@ -87,7 +87,7 @@ func RegisterApp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = client.RPush(redis.GithubOrganizations(), appConfiguration.Owner.ID).Err()
+	err = client.RPush(redis.GithubOrganizations(), appConfiguration.Owner.Id).Err()
 	if err != nil {
 		log.WithError(err).Error("Failed to append github organization")
 		w.WriteHeader(http.StatusInternalServerError)

@@ -4,7 +4,7 @@ import "time"
 
 type GithubOrganization struct {
 	Login                                string     `json:"login"`
-	ID                                   int        `json:"id"`
+	Id                                   int        `json:"id"`
 	NodeID                               string     `json:"node_id"`
 	Url                                  string     `json:"url"`
 	ReposUrl                             string     `json:"repos_url"`
