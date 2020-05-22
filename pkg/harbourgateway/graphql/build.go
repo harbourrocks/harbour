@@ -7,6 +7,8 @@ import (
 	"github.com/harbourrocks/harbour/pkg/apiclient"
 	"github.com/harbourrocks/harbour/pkg/auth"
 	"github.com/harbourrocks/harbour/pkg/harbourbuild/models"
+	"github.com/harbourrocks/harbour/pkg/harbourgateway/configuration"
+	"github.com/harbourrocks/harbour/pkg/harbourgateway/model"
 )
 
 var triggerBuildType = graphql.NewObject(
@@ -22,7 +24,7 @@ var triggerBuildType = graphql.NewObject(
 		},
 	})
 
-func TriggerBuildField() *graphql.Field {
+func TriggerBuildField(options configuration.Options) *graphql.Field {
 	return &graphql.Field{
 		Type:        triggerBuildType,
 		Description: "Trigger build with the given information",
@@ -80,8 +82,8 @@ func TriggerBuildField() *graphql.Field {
 				return nil, err
 			}
 
-			var response interface{}
-			_, err = apiclient.Post(p.Context, "http://localhost:5200/build", response, body, oidcTokenStr, nil)
+			var response model.Build
+			_, err = apiclient.Post(p.Context, options.BuildConfig.GetTriggerBuildUrl(), &response, body, oidcTokenStr, nil)
 			if err != nil {
 				return nil, err
 			}

@@ -51,7 +51,11 @@ func (b Builder) Start() {
 func (b Builder) buildImage(job models.BuildJob) {
 	log := logrus.WithField("reqId", job.ReqId)
 	redisClient := redisconfig.OpenClient(b.redisOptions)
-	redisClient.HSet(job.BuildKey, "build_status", "Running")
+
+	if err := redisClient.HSet(job.BuildKey, "build_status", "Running").Err(); err != nil {
+		log.WithError(err).Error("Failed to save data to redis")
+		return
+	}
 
 	buildCtx, err := b.createBuildContext(job.Request.Repository)
 	if err != nil {
@@ -88,13 +92,18 @@ func (b Builder) buildImage(job models.BuildJob) {
 	}
 
 	logs := buf.String()
-	fmt.Println(logs)
 	if strings.Contains(logs, "errorDetail") {
-		redisClient.HSet(job.BuildKey, "build_status", "Failed", "logs", logs)
+		if err := redisClient.HSet(job.BuildKey, "build_status", "Failed", "logs", logs).Err(); err != nil {
+			log.WithError(err).Error("Failed to save data to redis")
+			return
+		}
 		return
 	}
 
-	redisClient.HSet(job.BuildKey, "build_status", "Success", "logs", logs)
+	if err := redisClient.HSet(job.BuildKey, "build_status", "Success", "logs", logs).Err(); err != nil {
+		log.WithError(err).Error("Failed to save data to redis")
+		return
+	}
 	log.Tracef("Image %s was built", job.Request.Repository)
 
 	imageString := b.getImageString(job.RegistryUrl, job.Request.Repository, job.Request.Tag)

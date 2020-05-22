@@ -15,9 +15,14 @@ type Options struct {
 	OIDCConfig     auth.OIDCConfig
 	DockerRegistry registry.RegistryConfig
 	SCMConfig
+	BuildConfig
 }
 
 type SCMConfig struct {
+	Url string
+}
+
+type BuildConfig struct {
 	Url string
 }
 
@@ -29,6 +34,10 @@ func (c SCMConfig) GetRepositoriesUrl(orgLogin string) string {
 	return fmt.Sprintf("%s/github/repositories?org=%s", c.Url, orgLogin)
 }
 
+func (b BuildConfig) GetTriggerBuildUrl() string {
+	return fmt.Sprintf("%s/build", b.Url)
+}
+
 // NewDefaultOptions returns the default options
 func NewDefaultOptions() *Options {
 	s := Options{
@@ -36,6 +45,9 @@ func NewDefaultOptions() *Options {
 		OIDCConfig: auth.DefaultConfig(),
 		SCMConfig: SCMConfig{
 			Url: "http://localhost:5300",
+		},
+		BuildConfig: BuildConfig{
+			Url: "http://localhost:5200",
 		},
 	}
 
