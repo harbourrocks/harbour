@@ -12,9 +12,9 @@ import (
 )
 
 type AllOrganizationsResponse struct {
-	Id        string `json:"id"`
-	Name      string `json:"id"`
-	AvatarUrl string `json:"avatar"`
+	Login     string `json:"login"`
+	Name      string `json:"name"`
+	AvatarUrl string `json:"avatar_url"`
 }
 
 func AllOrganizations(w http.ResponseWriter, r *http.Request) {
@@ -31,8 +31,8 @@ func AllOrganizations(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// resolve data for each organization
-	allOrganizations := make([]models.GithubOrganization, len(organizationLogins))
-	for i, orgLogin := range organizationLogins {
+	allOrganizations := make([]AllOrganizationsResponse, 0)
+	for _, orgLogin := range organizationLogins {
 		token, err := github.GenerateTokenForOrganization(ctx, orgLogin)
 		if err != nil {
 			continue
@@ -51,7 +51,11 @@ func AllOrganizations(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		} else {
-			allOrganizations[i] = org
+			allOrganizations = append(allOrganizations, AllOrganizationsResponse{
+				Login:     org.Login,
+				Name:      org.Name,
+				AvatarUrl: org.AvatarUrl,
+			})
 		}
 	}
 

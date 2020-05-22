@@ -27,7 +27,9 @@ func RunSCMServer(o *configuration.Options) error {
 
 	http.HandleFunc("/scm/github/app", pipeline(handler.RegisterApp))
 
-	http.HandleFunc("/scm/github/organizations", pipeline(handler.AllOrganizations))
+	http.HandleFunc("/github/organizations", pipeline(handler.AllOrganizations))
+
+	http.HandleFunc("/github/repositories", pipeline(handler.OrganizationRepositories))
 
 	http.HandleFunc("/scm/github/callback", func(w http.ResponseWriter, r *http.Request) {
 		logrus.Trace(r)

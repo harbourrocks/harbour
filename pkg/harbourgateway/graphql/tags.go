@@ -1,6 +1,7 @@
 package graphql
 
 import (
+	"errors"
 	"github.com/graphql-go/graphql"
 	"github.com/harbourrocks/harbour/pkg/apiclient"
 	"github.com/harbourrocks/harbour/pkg/harbourgateway/configuration"
@@ -40,7 +41,7 @@ func TagsField(options configuration.Options) *graphql.Field {
 			// parse query parameter
 			repositoryQuery, isOK := p.Args["repository"].(string)
 			if !isOK {
-				return nil, nil
+				return nil, errors.New("repository parameter is missing")
 			}
 
 			dockerToken, err := acquireDockerToken(p.Context, options.DockerRegistry.TokenURL("repository", repositoryQuery, "pull"))

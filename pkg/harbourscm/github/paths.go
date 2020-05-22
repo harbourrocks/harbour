@@ -6,8 +6,12 @@ func GetGithubApiUrl() string {
 	return "https://api.github.com"
 }
 
-func GetOrganizationUrl(orgId string) string {
-	return fmt.Sprintf("%s/orgs/%s", GetGithubApiUrl(), orgId)
+func GetOrganizationUrl(orgLogin string) string {
+	return fmt.Sprintf("%s/orgs/%s", GetGithubApiUrl(), orgLogin)
+}
+
+func GetRepositoryUrl(orgLogin string) string {
+	return fmt.Sprintf("%s/orgs/%s/repos", GetGithubApiUrl(), orgLogin)
 }
 
 func GetAppUrl() string {
