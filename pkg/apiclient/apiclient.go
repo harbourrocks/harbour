@@ -119,10 +119,10 @@ func handleResponse(ctx context.Context, resp *http.Response, response interface
 	}
 
 	if err = json.Unmarshal(responseBytes, response); err != nil {
-		log.WithError(err).Error("Failed to unmarshal response: %s", responseBytes)
+		log.WithError(err).Errorf("Failed to unmarshal response: %s", string(responseBytes))
 		return
 	} else {
-		log.Tracef("Response: %s", responseBytes)
+		log.Tracef("Response: %s", string(responseBytes))
 		return
 	}
 }
