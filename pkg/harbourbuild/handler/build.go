@@ -9,6 +9,7 @@ import (
 	"github.com/harbourrocks/harbour/pkg/harbourbuild/configuration"
 	"github.com/harbourrocks/harbour/pkg/harbourbuild/models"
 	"github.com/harbourrocks/harbour/pkg/harbourbuild/redis"
+	"github.com/harbourrocks/harbour/pkg/harbourgateway/model"
 	"github.com/harbourrocks/harbour/pkg/httpcontext"
 	"github.com/harbourrocks/harbour/pkg/httphelper"
 	"github.com/harbourrocks/harbour/pkg/logconfig"
@@ -57,7 +58,12 @@ func (b BuilderModel) BuildImage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Trace("Build job enqueued")
-	w.WriteHeader(http.StatusAccepted)
+	w.WriteHeader(http.StatusOK)
+
+	_ = httphelper.WriteResponse(r, w, model.Build{
+		BuildId: buildKey,
+		Status:  "Pending",
+	})
 }
 
 func createBuildEntry(ctx context.Context, request models.BuildRequest) (string, error) {

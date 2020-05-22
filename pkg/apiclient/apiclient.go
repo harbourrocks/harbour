@@ -1,6 +1,7 @@
 package apiclient
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -56,11 +57,11 @@ func Get(ctx context.Context, url string, response interface{}, token string, he
 // Post issues a POST request against the url.
 // The POST payload is specified by body. If body is nil then no body is sent at all.
 // The response is unmarshalled into response.
-func Post(ctx context.Context, url string, response interface{}, _ interface{}, token string, header map[string]string) (resp *http.Response, err error) {
+func Post(ctx context.Context, url string, response interface{}, body *bytes.Buffer, token string, header map[string]string) (resp *http.Response, err error) {
 	log := logconfig.GetLogCtx(ctx)
 	reqId := httpcontext.GetReqIdCtx(ctx)
 
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, url, nil)
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, url, body)
 	if err != nil {
 		log.
 			WithField("url", url).WithError(err).
