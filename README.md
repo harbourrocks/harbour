@@ -30,7 +30,7 @@ docker-compose version 1.25.4, build 8d51620a
 
   *Script only works with docker installed before.*
 
-* The actual registry that stores the images is the official docker registry. Simply setup the registry by executing this script: [scripts/run-redis.sh](scripts/run-redis.sh). This will also create all certificates that are required for authenticating with the registry.
+* The actual registry that stores the images is the official docker registry. Simply setup the registry by executing this script: [scripts/run-registry.sh](scripts/run-registry.sh). This will also create all certificates that are required for authenticating with the registry.
 
   *Script only works with docker installed before.*
   
