@@ -7,12 +7,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/builder/dockerignore"
 	"github.com/docker/docker/client"
+	"github.com/docker/docker/pkg/fileutils"
+
 	"github.com/harbourrocks/harbour/pkg/harbourbuild/models"
 	"github.com/harbourrocks/harbour/pkg/redisconfig"
 	"github.com/jhoonb/archivex"
 	"github.com/sirupsen/logrus"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -77,7 +81,7 @@ func (b Builder) buildImage(job models.BuildJob) {
 
 	defer func() {
 		err := buildCtx.Close()
-		err = os.Remove(buildCtx.Name())
+		//err = os.Remove(buildCtx.Name())
 		err = resp.Body.Close()
 		if err != nil {
 			log.WithError(err).Error("Error while cleaning up build context")
@@ -117,15 +121,50 @@ func (b Builder) buildImage(job models.BuildJob) {
 }
 
 func (b Builder) createBuildContext(project string) (*os.File, error) {
+	var excludes = []string{}
 	buildContext := fmt.Sprintf(b.ctxPath+"%s.tar", project)
 	projectPath, err := b.getProjectPath(project)
 	if err != nil {
 		return nil, err
 	}
 
+	fmt.Println(projectPath)
+
+	ignore, err := os.Open(fmt.Sprintf("%s/%s", projectPath, ".dockerignore"))
+	if os.IsNotExist(err) {
+	}
+
+	excludes, err = dockerignore.ReadAll(ignore)
+	if err != nil {
+
+	}
+
+	fmt.Println(excludes)
+	patternMatcher, err := fileutils.NewPatternMatcher(excludes)
+	if err != nil {
+
+	}
+
 	tar := new(archivex.TarFile)
 	err = tar.Create(buildContext)
-	err = tar.AddAll(projectPath, false)
+	err = filepath.Walk(projectPath, func(path string, info os.FileInfo, err error) error {
+		split := strings.Split(filepath.Clean(path), project+"/")
+
+		if len(split) > 1 {
+			excluded, _ := patternMatcher.Matches(split[1])
+			if !excluded {
+				file, _ := os.Open(path)
+				tar.Add(split[1], file, info)
+			}
+			return nil
+		}
+
+		return nil
+	})
+
+	//tar := new(archivex.TarFile)
+	//err = tar.Create(buildContext)
+	//err = tar.AddAll(projectPath, false)
 	err = tar.Close()
 
 	dockerBuildCtx, err := os.Open(buildContext)
@@ -165,6 +204,7 @@ func (b Builder) pushImage(image string, token string) error {
 	}
 
 	logs := buf.String()
+	fmt.Println(logs)
 	if strings.Contains(logs, "errorDetail") {
 		return fmt.Errorf("unable to push image: %s", logs)
 	}
