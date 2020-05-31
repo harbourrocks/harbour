@@ -1,8 +1,6 @@
 package graphql
 
 import (
-	"bytes"
-	"encoding/json"
 	"github.com/graphql-go/graphql"
 	"github.com/harbourrocks/harbour/pkg/apiclient"
 	"github.com/harbourrocks/harbour/pkg/auth"
@@ -70,20 +68,14 @@ func TriggerBuildField(options configuration.Options) *graphql.Field {
 			}
 
 			build := &models.BuildRequest{
-				Repository: repository,
+				SCMId:      repository,
 				Dockerfile: dockerfile,
 				Tag:        tag,
 				Commit:     commit,
 			}
 
-			body := new(bytes.Buffer)
-			err := json.NewEncoder(body).Encode(build)
-			if err != nil {
-				return nil, err
-			}
-
 			var response model.Build
-			_, err = apiclient.Post(p.Context, options.BuildConfig.GetTriggerBuildUrl(), &response, body, oidcTokenStr, nil)
+			_, err := apiclient.Post(p.Context, options.BuildConfig.GetTriggerBuildUrl(), &response, build, oidcTokenStr, nil)
 			if err != nil {
 				return nil, err
 			}

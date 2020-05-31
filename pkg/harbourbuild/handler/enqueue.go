@@ -1,9 +1,7 @@
 package handler
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"github.com/google/uuid"
 	"github.com/harbourrocks/harbour/pkg/apiclient"
 	"github.com/harbourrocks/harbour/pkg/auth"
@@ -41,17 +39,11 @@ func (eh EnqueuHandler) EnqueueBuild(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	body := new(bytes.Buffer)
-	err = json.NewEncoder(body).Encode(handler.CheckoutRequestModel{
+	body := handler.CheckoutRequestModel{
 		SCMId:       buildRequest.SCMId,
 		CallbackURL: "http://localhost:5200/build",
 		State:       buildKey,
 		Commit:      buildRequest.Commit,
-	})
-	if err != nil {
-		log.WithError(err).Error("serialization of checkoutRequestModel failed")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
 	}
 
 	_, err = apiclient.Post(r.Context(), "http://localhost:5300/checkout", nil, body, auth.GetOidcTokenStrCtx(r.Context()), nil)
