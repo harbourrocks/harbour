@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/google/uuid"
 	"github.com/harbourrocks/harbour/pkg/apiclient"
 	"github.com/harbourrocks/harbour/pkg/auth"
@@ -27,6 +28,12 @@ func NewBuilderModel(buildChan chan models.BuildJob, config *configuration.Optio
 	return BuilderModel{buildChan: buildChan, config: config}
 }
 
+func (b BuilderModel) Build(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Test")
+
+	w.WriteHeader(http.StatusOK)
+}
+
 // BuildImage
 func (b BuilderModel) BuildImage(w http.ResponseWriter, r *http.Request) {
 	log := logconfig.GetLogReq(r)
@@ -38,7 +45,7 @@ func (b BuilderModel) BuildImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	registryToken, err := fetchRegistryToken(r.Context(), buildRequest.Repository, b.config)
+	registryToken, err := fetchRegistryToken(r.Context(), buildRequest.SCMId, b.config)
 	if err != nil {
 		return // Error is already logged in get
 	}
@@ -74,7 +81,7 @@ func createBuildEntry(ctx context.Context, request models.BuildRequest) (string,
 
 	err := client.HSet(buildKey,
 		"build_id", buildId.String(),
-		"repository", request.Repository,
+		"repository", request.SCMId,
 		"commit", request.Commit,
 		"logs", nil,
 		"build_status", "Pending").Err()

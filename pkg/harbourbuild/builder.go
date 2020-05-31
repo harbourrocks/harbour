@@ -61,13 +61,13 @@ func (b Builder) buildImage(job models.BuildJob) {
 		return
 	}
 
-	buildCtx, err := b.createBuildContext(job.Request.Repository)
+	buildCtx, err := b.createBuildContext(job.Request.SCMId)
 	if err != nil {
 		log.WithError(err).Error("Failed to create build context")
 		return
 	}
 
-	tag := []string{b.getImageString(job.RegistryUrl, job.Request.Repository, job.Request.Tag)}
+	tag := []string{b.getImageString(job.RegistryUrl, job.Request.SCMId, job.Request.Tag)}
 	opt := types.ImageBuildOptions{
 		Tags:       tag,
 		Dockerfile: job.Request.Dockerfile,
@@ -108,16 +108,16 @@ func (b Builder) buildImage(job models.BuildJob) {
 		log.WithError(err).Error("Failed to save data to redis")
 		return
 	}
-	log.Tracef("Image %s was built", job.Request.Repository)
+	log.Tracef("Image %s was built", job.Request.SCMId)
 
-	imageString := b.getImageString(job.RegistryUrl, job.Request.Repository, job.Request.Tag)
+	imageString := b.getImageString(job.RegistryUrl, job.Request.SCMId, job.Request.Tag)
 
 	if err = b.pushImage(imageString, job.RegistryToken); err != nil {
 		log.WithError(err).Error("Error while pushing image to registry")
 		return
 	}
 
-	log.Tracef("Image %s was pushed to registry %s", job.Request.Repository, job.RegistryUrl)
+	log.Tracef("Image %s was pushed to registry %s", job.Request.SCMId, job.RegistryUrl)
 }
 
 func (b Builder) createBuildContext(project string) (*os.File, error) {
@@ -154,7 +154,7 @@ func (b Builder) createBuildContext(project string) (*os.File, error) {
 			excluded, _ := patternMatcher.Matches(split[1])
 			if !excluded {
 				file, _ := os.Open(path)
-				tar.Add(split[1], file, info)
+				tar.Add(split[1], file, nil)
 			}
 			return nil
 		}
@@ -162,11 +162,7 @@ func (b Builder) createBuildContext(project string) (*os.File, error) {
 		return nil
 	})
 
-	//tar := new(archivex.TarFile)
-	//err = tar.Create(buildContext)
-	//err = tar.AddAll(projectPath, false)
 	err = tar.Close()
-
 	dockerBuildCtx, err := os.Open(buildContext)
 	if err != nil {
 		return nil, err
