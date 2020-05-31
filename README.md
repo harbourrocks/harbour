@@ -69,6 +69,41 @@ You can access redis for debugging purposes by the redis-cli using the following
   
 https://docs.docker.com/registry/spec/api/#detail
 
+# Github App
+
+**Installation of the App not yet covered**
+
+### Get the *installation_id* of the Github app from the URL as shown in the picture below, then click on *App Settings*
+![Screenshot of Harbour](images/installed-apps.png)
+
+### Get the *app_id*, *client_id*, and *client_secret* from the app settings:
+![Screenshot of Harbour](images/github-app.png)
+
+### Scroll down and generate a new private key:
+![Screenshot of Harbour](images/github-app-private-key.png)
+
+### Now run SCM and register the GitHub app:
+
+POST http://localhost:5300/scm/github/register
+
+BODY:
+```json
+{
+	
+	"app_id": 0,
+	"installation_id": "",
+	"client_id": "",
+	"client_secret": "",
+	"private_key": ""
+	
+}
+```
+
+For the private key use the content of the downloded private key. The downloaded file contains line breaks, make sure to format the content like this:
+
+`-----BEGIN RSA PRIVATE KEY-----\n[private bytes here, without linebreaks]\n-----END RSA PRIVATE KEY-----\n`
+
+
 # Licenses
 
 ## Font Awesome

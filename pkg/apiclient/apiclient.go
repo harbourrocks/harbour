@@ -57,11 +57,24 @@ func Get(ctx context.Context, url string, response interface{}, token string, he
 // Post issues a POST request against the url.
 // The POST payload is specified by body. If body is nil then no body is sent at all.
 // The response is unmarshalled into response.
-func Post(ctx context.Context, url string, response interface{}, body *bytes.Buffer, token string, header map[string]string) (resp *http.Response, err error) {
+func Post(ctx context.Context, url string, response interface{}, body interface{}, token string, header map[string]string) (resp *http.Response, err error) {
 	log := logconfig.GetLogCtx(ctx)
 	reqId := httpcontext.GetReqIdCtx(ctx)
 
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, url, body)
+	var req *http.Request
+	if body != nil {
+		bodyBytes := new(bytes.Buffer)
+		err = json.NewEncoder(bodyBytes).Encode(body)
+		if err != nil {
+			log.WithError(err).Error("serialization of body failed")
+			return
+		}
+
+		req, err = http.NewRequestWithContext(context.Background(), http.MethodPost, url, bodyBytes)
+	} else {
+		req, err = http.NewRequestWithContext(context.Background(), http.MethodPost, url, nil)
+	}
+
 	if err != nil {
 		log.
 			WithField("url", url).WithError(err).
