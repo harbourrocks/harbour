@@ -1,9 +1,7 @@
 package worker
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
@@ -46,14 +44,7 @@ func CheckoutGithub(task GithubCheckoutTask) {
 			callbackModel.WorkspacePath = workspacePath
 		}
 
-		body := new(bytes.Buffer)
-		err := json.NewEncoder(body).Encode(callbackModel)
-		if err != nil {
-			log.WithError(err).Error("serialization of callbackModel failed")
-			return
-		}
-
-		resp, err := apiclient.Post(ctx, fmt.Sprintf("%s?state=%s", task.CallbackUrl, task.State), nil, body, "", nil)
+		resp, err := apiclient.Post(ctx, fmt.Sprintf("%s?state=%s", task.CallbackUrl, task.State), nil, callbackModel, "", nil)
 		if err != nil || resp.StatusCode >= 300 {
 			log.WithError(err).Error("Callback failed")
 			return
