@@ -8,6 +8,7 @@ import (
 	"github.com/harbourrocks/harbour/pkg/harbourbuild/configuration"
 	"github.com/harbourrocks/harbour/pkg/harbourbuild/models"
 	"github.com/harbourrocks/harbour/pkg/harbourbuild/redis"
+	"github.com/harbourrocks/harbour/pkg/harbourgateway/model"
 	"github.com/harbourrocks/harbour/pkg/harbourscm/handler"
 	"github.com/harbourrocks/harbour/pkg/httphelper"
 	"github.com/harbourrocks/harbour/pkg/logconfig"
@@ -15,15 +16,15 @@ import (
 	"net/http"
 )
 
-type EnqueuHandler struct {
+type EnqueueHandler struct {
 	config *configuration.Options
 }
 
-func NewEnqueueHandler(config *configuration.Options) EnqueuHandler {
-	return EnqueuHandler{config: config}
+func NewEnqueueHandler(config *configuration.Options) EnqueueHandler {
+	return EnqueueHandler{config: config}
 }
 
-func (eh EnqueuHandler) EnqueueBuild(w http.ResponseWriter, r *http.Request) {
+func (eh EnqueueHandler) EnqueueBuild(w http.ResponseWriter, r *http.Request) {
 	log := logconfig.GetLogReq(r)
 
 	var buildRequest models.BuildRequest
@@ -33,9 +34,10 @@ func (eh EnqueuHandler) EnqueueBuild(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	buildKey, err := createBuildEntry2(r.Context(), buildRequest)
+	buildKey, err := createBuildEntry(r.Context(), buildRequest)
 	if err != nil {
 		log.WithError(err).Error("Failed to save build to redis")
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -53,21 +55,28 @@ func (eh EnqueuHandler) EnqueueBuild(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Trace("Build enqueued")
+	log.Trace("Build job enqueued")
 	w.WriteHeader(http.StatusOK)
+
+	_ = httphelper.WriteResponse(r, w, model.Build{
+		BuildId: buildKey,
+		Status:  "Pending",
+	})
 }
 
-func createBuildEntry2(ctx context.Context, request models.BuildRequest) (string, error) {
+func createBuildEntry(ctx context.Context, request models.BuildRequest) (string, error) {
 	client := redisconfig.GetRedisClientCtx(ctx)
 
 	buildId := uuid.New()
 	buildKey := redis.BuildKey(buildId.String())
 
 	err := client.HSet(buildKey,
-		"build_id", buildId.String(),
-		"repository", request.SCMId,
+		"token", auth.GetOidcTokenStrCtx(ctx),
+		"scm_id", request.SCMId,
 		"commit", request.Commit,
 		"logs", nil,
+		"tag", request.Tag,
+		"dockerfile", request.Dockerfile,
 		"build_status", "Pending").Err()
 
 	if err != nil {

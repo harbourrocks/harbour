@@ -108,7 +108,10 @@ func Post(ctx context.Context, url string, response interface{}, body interface{
 		return
 	}
 
-	err = handleResponse(ctx, resp, response)
+	if response != nil {
+		err = handleResponse(ctx, resp, response)
+	}
+
 	return
 }
 

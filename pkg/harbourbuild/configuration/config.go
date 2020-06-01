@@ -9,7 +9,6 @@ import (
 
 type Options struct {
 	ContextPath    string
-	RepoPath       string
 	Redis          redisconfig.RedisOptions
 	OIDCConfig     auth.OIDCConfig
 	DockerRegistry registry.RegistryConfig
@@ -18,7 +17,6 @@ type Options struct {
 func NewDefaultOptions() *Options {
 	s := Options{
 		ContextPath: "",
-		RepoPath:    "",
 		Redis:       redisconfig.NewDefaultRedisOptions(),
 		OIDCConfig:  auth.DefaultConfig(),
 	}
@@ -30,7 +28,6 @@ func ParseViperConfig() *Options {
 	s := NewDefaultOptions()
 
 	s.ContextPath = viper.GetString("CONTEXT_PATH")
-	s.RepoPath = viper.GetString("REPO_PATH")
 	s.OIDCConfig = auth.ParseViperConfig()
 	s.Redis = redisconfig.ParseViperConfig()
 	s.DockerRegistry = registry.ParseViperConfig()

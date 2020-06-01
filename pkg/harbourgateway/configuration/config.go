@@ -34,8 +34,8 @@ func (c SCMConfig) GetRepositoriesUrl(orgLogin string) string {
 	return fmt.Sprintf("%s/github/repositories?org=%s", c.Url, orgLogin)
 }
 
-func (b BuildConfig) GetTriggerBuildUrl() string {
-	return fmt.Sprintf("%s/build", b.Url)
+func (b BuildConfig) GetEnqueueBuildUrl() string {
+	return fmt.Sprintf("%s/enqueue", b.Url)
 }
 
 // NewDefaultOptions returns the default options

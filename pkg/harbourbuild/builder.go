@@ -25,11 +25,11 @@ type Builder struct {
 	cli          *client.Client
 	ctx          context.Context
 	ctxPath      string
-	repoPath     string
 	redisOptions redisconfig.RedisOptions
+	log          *logrus.Entry
 }
 
-func NewBuilder(jobChan chan models.BuildJob, ctxPath string, repoPath string, redisConfig redisconfig.RedisOptions) (Builder, error) {
+func NewBuilder(jobChan chan models.BuildJob, ctxPath string, redisConfig redisconfig.RedisOptions) (Builder, error) {
 	var builder Builder
 	ctx := context.Background()
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
@@ -37,7 +37,7 @@ func NewBuilder(jobChan chan models.BuildJob, ctxPath string, repoPath string, r
 		return builder, err
 	}
 
-	builder = Builder{jobChan: jobChan, cli: cli, ctx: ctx, ctxPath: ctxPath, repoPath: repoPath, redisOptions: redisConfig}
+	builder = Builder{jobChan: jobChan, cli: cli, ctx: ctx, ctxPath: ctxPath, redisOptions: redisConfig}
 	return builder, nil
 }
 
@@ -53,38 +53,39 @@ func (b Builder) Start() {
 }
 
 func (b Builder) buildImage(job models.BuildJob) {
-	log := logrus.WithField("reqId", job.ReqId)
+	b.log = logrus.WithField("reqId", job.ReqId)
 	redisClient := redisconfig.OpenClient(b.redisOptions)
 
 	if err := redisClient.HSet(job.BuildKey, "build_status", "Running").Err(); err != nil {
-		log.WithError(err).Error("Failed to save data to redis")
+		b.log.WithError(err).Error("Failed to save data to redis")
 		return
 	}
 
-	buildCtx, err := b.createBuildContext(job.Request.SCMId)
+	buildCtx, err := b.createBuildContext(job.FilePath, job.Dockerfile)
 	if err != nil {
-		log.WithError(err).Error("Failed to create build context")
+		b.log.WithError(err).Error("Failed to create build context")
 		return
 	}
 
-	tag := []string{b.getImageString(job.RegistryUrl, job.Request.SCMId, job.Request.Tag)}
+	tag := []string{b.getImageString(job.RegistryUrl, job.Repository, job.Tag)}
 	opt := types.ImageBuildOptions{
 		Tags:       tag,
-		Dockerfile: job.Request.Dockerfile,
+		Dockerfile: job.Dockerfile,
 	}
 
 	resp, err := b.cli.ImageBuild(b.ctx, buildCtx, opt)
 	if err != nil {
-		log.WithError(err).Error("Failed to build image")
+		b.log.WithError(err).Error("Failed to build image")
 		return
 	}
 
 	defer func() {
 		err := buildCtx.Close()
-		//err = os.Remove(buildCtx.Name())
+		err = os.Remove(buildCtx.Name())
+		err = os.RemoveAll(job.FilePath)
 		err = resp.Body.Close()
 		if err != nil {
-			log.WithError(err).Error("Error while cleaning up build context")
+			b.log.WithError(err).Error("Error while cleaning up build context")
 			return
 		}
 	}()
@@ -92,46 +93,47 @@ func (b Builder) buildImage(job models.BuildJob) {
 	buf := new(bytes.Buffer)
 	_, err = buf.ReadFrom(resp.Body)
 	if err != nil {
-		log.WithError(err).Error("Failed to parse response body")
+		b.log.WithError(err).Error("Failed to parse response body")
 	}
 
 	logs := buf.String()
 	if strings.Contains(logs, "errorDetail") {
+		b.log.Errorf("Build failed: %s", logs)
 		if err := redisClient.HSet(job.BuildKey, "build_status", "Failed", "logs", logs).Err(); err != nil {
-			log.WithError(err).Error("Failed to save data to redis")
+			b.log.WithError(err).Error("Failed to save data to redis")
 			return
 		}
 		return
 	}
 
 	if err := redisClient.HSet(job.BuildKey, "build_status", "Success", "logs", logs).Err(); err != nil {
-		log.WithError(err).Error("Failed to save data to redis")
+		b.log.WithError(err).Error("Failed to save data to redis")
 		return
 	}
-	log.Tracef("Image %s was built", job.Request.SCMId)
+	b.log.Tracef("Image %s was built", job.Repository)
 
-	imageString := b.getImageString(job.RegistryUrl, job.Request.SCMId, job.Request.Tag)
+	imageString := b.getImageString(job.RegistryUrl, job.Repository, job.Tag)
 
 	if err = b.pushImage(imageString, job.RegistryToken); err != nil {
-		log.WithError(err).Error("Error while pushing image to registry")
+		b.log.WithError(err).Error("Error while pushing image to registry")
 		return
 	}
 
-	log.Tracef("Image %s was pushed to registry %s", job.Request.SCMId, job.RegistryUrl)
+	b.log.Tracef("Image %s was pushed to registry %s", job.Repository, job.RegistryUrl)
 }
 
-func (b Builder) createBuildContext(project string) (*os.File, error) {
+func (b Builder) createBuildContext(filePath string, dockerfile string) (*os.File, error) {
 	var excludes = []string{}
-	buildContext := fmt.Sprintf(b.ctxPath+"%s.tar", project)
-	projectPath, err := b.getProjectPath(project)
-	if err != nil {
-		return nil, err
-	}
+	buildContext := fmt.Sprintf("%s/%s.tar", b.ctxPath, strings.Split(filePath, "/")[1])
 
-	fmt.Println(projectPath)
-
-	ignore, err := os.Open(fmt.Sprintf("%s/%s", projectPath, ".dockerignore"))
+	path := fmt.Sprintf("./%s%s%s", filePath, dockerfile, ".dockerignore")
+	ignore, err := os.Open(path)
 	if os.IsNotExist(err) {
+		b.log.Trace("Fallback to root .dockerignore")
+		ignore, err = os.Open(fmt.Sprintf("%s/%s", filePath, ".dockerignore"))
+		if os.IsNotExist(err) {
+			b.log.Trace("No .dockerignore found")
+		}
 	}
 
 	excludes, err = dockerignore.ReadAll(ignore)
@@ -139,7 +141,6 @@ func (b Builder) createBuildContext(project string) (*os.File, error) {
 
 	}
 
-	fmt.Println(excludes)
 	patternMatcher, err := fileutils.NewPatternMatcher(excludes)
 	if err != nil {
 
@@ -147,8 +148,12 @@ func (b Builder) createBuildContext(project string) (*os.File, error) {
 
 	tar := new(archivex.TarFile)
 	err = tar.Create(buildContext)
-	err = filepath.Walk(projectPath, func(path string, info os.FileInfo, err error) error {
-		split := strings.Split(filepath.Clean(path), project+"/")
+	if err != nil {
+		logrus.WithError(err).Error("Couldn't create build context")
+	}
+
+	err = filepath.Walk(filePath, func(path string, info os.FileInfo, err error) error {
+		split := strings.Split(filepath.Clean(path), filePath+"/")
 
 		if len(split) > 1 {
 			excluded, _ := patternMatcher.Matches(split[1])
@@ -213,10 +218,4 @@ func (b Builder) getImageString(registryUrl string, repository string, tag strin
 		return fmt.Sprintf("%s/%s:%s", strings.Split(registryUrl, "//")[1], repository, tag)
 	}
 	return fmt.Sprintf("%s/%s", strings.Split(registryUrl, "//")[1], repository)
-}
-
-//TODO Communicate with Harbour SCM in order to receive the path to the project-files
-func (b Builder) getProjectPath(project string) (string, error) {
-	// Just returns a demo path
-	return fmt.Sprintf(b.repoPath+"%s", project), nil
 }

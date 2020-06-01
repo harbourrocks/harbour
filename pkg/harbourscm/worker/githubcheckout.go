@@ -60,7 +60,7 @@ func CheckoutGithub(task GithubCheckoutTask) {
 	// create workspace
 	checkoutFolder := uuid.New().String()
 	workspacePath = path.Join(scmConfig.CheckoutPath, checkoutFolder)
-	err = os.Mkdir(workspacePath, os.ModeDir)
+	err = os.Mkdir(workspacePath, os.ModePerm)
 	if err != nil {
 		log.WithError(err).WithField("workspacePath", workspacePath).Error("Failed to generate workspace directors")
 		return

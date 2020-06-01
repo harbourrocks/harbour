@@ -14,7 +14,7 @@ func RunBuildServer(o *configuration.Options) error {
 	logrus.Info("Started Harbour build server")
 
 	buildChan := make(chan models.BuildJob)
-	builder, err := NewBuilder(buildChan, o.ContextPath, o.RepoPath, o.Redis)
+	builder, err := NewBuilder(buildChan, o.ContextPath, o.Redis)
 	if err != nil {
 		logrus.Fatal(err)
 		return err
@@ -24,14 +24,17 @@ func RunBuildServer(o *configuration.Options) error {
 
 	logrus.Info("Started Harbour builder ")
 
-	model2 := handler.NewEnqueueHandler(o)
-	model := handler.NewBuilderModel(buildChan, o)
+	enqueueHandler := handler.NewEnqueueHandler(o)
+	buildHandler := handler.NewBuildHandler(buildChan, o)
 
 	pipeline := httppipeline.DefaultPipeline(o.OIDCConfig, o.Redis)
 	pipeline = httppipeline.WithConfig(pipeline, configuration.BuildConfigKey, *o)
 
-	http.HandleFunc("/enqueue", pipeline(model2.EnqueueBuild))
-	http.HandleFunc("/build", pipeline(model.Build))
+	unPipeline := httppipeline.UnAuthPipeline(o.Redis)
+	unPipeline = httppipeline.WithConfig(unPipeline, configuration.BuildConfigKey, *o)
+
+	http.HandleFunc("/enqueue", pipeline(enqueueHandler.EnqueueBuild))
+	http.HandleFunc("/build", unPipeline(buildHandler.Build))
 
 	bindAddress := "127.0.0.1:5200"
 	logrus.Info(fmt.Sprintf("Listening on httphandler://%s/", bindAddress))

@@ -9,7 +9,7 @@ import (
 	"github.com/harbourrocks/harbour/pkg/harbourgateway/model"
 )
 
-var triggerBuildType = graphql.NewObject(
+var enqueueBuildType = graphql.NewObject(
 	graphql.ObjectConfig{
 		Name: "Build",
 		Fields: graphql.Fields{
@@ -22,10 +22,10 @@ var triggerBuildType = graphql.NewObject(
 		},
 	})
 
-func TriggerBuildField(options configuration.Options) *graphql.Field {
+func EnqueueBuildField(options configuration.Options) *graphql.Field {
 	return &graphql.Field{
-		Type:        triggerBuildType,
-		Description: "Trigger build with the given information",
+		Type:        enqueueBuildType,
+		Description: "Enqueue build with the given information",
 		Args: graphql.FieldConfigArgument{
 			"dockerfile": &graphql.ArgumentConfig{
 				Type:        graphql.String,
@@ -35,7 +35,7 @@ func TriggerBuildField(options configuration.Options) *graphql.Field {
 				Type:        graphql.String,
 				Description: "Tag which should be used for the image",
 			},
-			"repository": &graphql.ArgumentConfig{
+			"scmId": &graphql.ArgumentConfig{
 				Type:        graphql.String,
 				Description: "Code-Repo which should be built",
 			},
@@ -47,7 +47,7 @@ func TriggerBuildField(options configuration.Options) *graphql.Field {
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			oidcTokenStr := auth.GetOidcTokenStrCtx(p.Context)
 
-			repository, isOK := p.Args["repository"].(string)
+			scmId, isOK := p.Args["scmId"].(string)
 			if !isOK {
 				return nil, nil
 			}
@@ -68,14 +68,14 @@ func TriggerBuildField(options configuration.Options) *graphql.Field {
 			}
 
 			build := &models.BuildRequest{
-				SCMId:      repository,
+				SCMId:      scmId,
 				Dockerfile: dockerfile,
 				Tag:        tag,
 				Commit:     commit,
 			}
 
 			var response model.Build
-			_, err := apiclient.Post(p.Context, options.BuildConfig.GetTriggerBuildUrl(), &response, build, oidcTokenStr, nil)
+			_, err := apiclient.Post(p.Context, options.BuildConfig.GetEnqueueBuildUrl(), &response, build, oidcTokenStr, nil)
 			if err != nil {
 				return nil, err
 			}

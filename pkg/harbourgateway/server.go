@@ -30,7 +30,7 @@ func RunGatewayServer(o *configuration.Options) error {
 		graphql.ObjectConfig{
 			Name: "Mutation",
 			Fields: graphql.Fields{
-				"triggerBuild": graphql2.TriggerBuildField(*o),
+				"enqueueBuild": graphql2.EnqueueBuildField(*o),
 			},
 		})
 

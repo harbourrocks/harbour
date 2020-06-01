@@ -10,7 +10,7 @@ func encode(id string) string {
 	return base64.StdEncoding.EncodeToString([]byte(id))
 }
 
-func decode(id string) string {
+func Decode(id string) string {
 	bytes, err := base64.StdEncoding.DecodeString(id)
 	if err != nil {
 		return ""
@@ -24,7 +24,7 @@ func GenerateGithubId(organization, repository string) string {
 }
 
 func DecomposeRepositoryId(id string) (scmProvider, second, third string) {
-	id = decode(id)
+	id = Decode(id)
 
 	split := strings.Split(id, "/")
 	if len(split) != 3 {

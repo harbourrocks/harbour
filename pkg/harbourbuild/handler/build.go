@@ -3,61 +3,69 @@ package handler
 import (
 	"context"
 	"errors"
-	"fmt"
-	"github.com/google/uuid"
+	"github.com/go-redis/redis/v7"
 	"github.com/harbourrocks/harbour/pkg/apiclient"
 	"github.com/harbourrocks/harbour/pkg/auth"
 	"github.com/harbourrocks/harbour/pkg/harbourbuild/configuration"
 	"github.com/harbourrocks/harbour/pkg/harbourbuild/models"
-	"github.com/harbourrocks/harbour/pkg/harbourbuild/redis"
-	"github.com/harbourrocks/harbour/pkg/harbourgateway/model"
+	"github.com/harbourrocks/harbour/pkg/harbourscm/common"
+	"github.com/harbourrocks/harbour/pkg/harbourscm/worker"
 	"github.com/harbourrocks/harbour/pkg/httpcontext"
 	"github.com/harbourrocks/harbour/pkg/httphelper"
 	"github.com/harbourrocks/harbour/pkg/logconfig"
 	"github.com/harbourrocks/harbour/pkg/redisconfig"
 	registryModels "github.com/harbourrocks/harbour/pkg/registry/models"
+	l "github.com/sirupsen/logrus"
 	"net/http"
 )
 
-type BuilderModel struct {
+type BuildHandler struct {
 	buildChan chan models.BuildJob
 	config    *configuration.Options
 }
 
-func NewBuilderModel(buildChan chan models.BuildJob, config *configuration.Options) BuilderModel {
-	return BuilderModel{buildChan: buildChan, config: config}
+func NewBuildHandler(buildChan chan models.BuildJob, config *configuration.Options) BuildHandler {
+	return BuildHandler{buildChan: buildChan, config: config}
 }
 
-func (b BuilderModel) Build(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Test")
-
-	w.WriteHeader(http.StatusOK)
-}
-
-// BuildImage
-func (b BuilderModel) BuildImage(w http.ResponseWriter, r *http.Request) {
+func (b BuildHandler) Build(w http.ResponseWriter, r *http.Request) {
 	log := logconfig.GetLogReq(r)
+	client := redisconfig.GetRedisClientReq(r)
 
-	var buildRequest models.BuildRequest
-	if err := httphelper.ReadRequest(r, w, &buildRequest); err != nil {
+	buildKey := httphelper.GetQueryParam(r, "state")
+
+	var checkoutResponse worker.CheckoutCompletedModel
+	if err := httphelper.ReadRequest(r, w, &checkoutResponse); err != nil {
 		log.WithError(err).Error("Failed to parse build request")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	registryToken, err := fetchRegistryToken(r.Context(), buildRequest.SCMId, b.config)
+	if checkoutResponse.Success != true {
+	}
+
+	redisBuildEntry := client.HGetAll(buildKey)
+	if err := redisBuildEntry.Err(); err != redis.Nil && err != nil {
+		l.WithError(err).Error("Failed to load build data")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	buildEntry := redisBuildEntry.Val()
+
+	ctx := context.WithValue(r.Context(), "oidcTokenStr", buildEntry["token"])
+
+	repository := common.Decode(buildEntry["scm_id"])
+
+	registryToken, err := fetchRegistryToken(ctx, repository, b.config)
 	if err != nil {
 		return // Error is already logged in get
 	}
 
-	buildKey, err := createBuildEntry(r.Context(), buildRequest)
-	if err != nil {
-		log.WithError(err).Error("Failed to save build to redis")
-		return
-	}
-
 	b.buildChan <- models.BuildJob{
-		Request:       buildRequest,
+		Repository:    repository,
+		Tag:           buildEntry["tag"],
+		FilePath:      checkoutResponse.WorkspacePath,
+		Dockerfile:    buildEntry["dockerfile"],
 		BuildKey:      buildKey,
 		RegistryToken: registryToken,
 		RegistryUrl:   b.config.DockerRegistry.RegistryUrl,
@@ -66,31 +74,6 @@ func (b BuilderModel) BuildImage(w http.ResponseWriter, r *http.Request) {
 
 	log.Trace("Build job enqueued")
 	w.WriteHeader(http.StatusOK)
-
-	_ = httphelper.WriteResponse(r, w, model.Build{
-		BuildId: buildKey,
-		Status:  "Pending",
-	})
-}
-
-func createBuildEntry(ctx context.Context, request models.BuildRequest) (string, error) {
-	client := redisconfig.GetRedisClientCtx(ctx)
-
-	buildId := uuid.New()
-	buildKey := redis.BuildKey(buildId.String())
-
-	err := client.HSet(buildKey,
-		"build_id", buildId.String(),
-		"repository", request.SCMId,
-		"commit", request.Commit,
-		"logs", nil,
-		"build_status", "Pending").Err()
-
-	if err != nil {
-		return buildKey, err
-	}
-
-	return buildKey, nil
 }
 
 func fetchRegistryToken(ctx context.Context, repository string, registry *configuration.Options) (string, error) {
