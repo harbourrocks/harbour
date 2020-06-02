@@ -78,7 +78,7 @@ var githubRepositoryType = graphql.NewObject(
 
 type SCMGithubRepositoriesResponse struct {
 	Id    int    `json:"id"`
-	SCMId int    `json:"scm_id"`
+	SCMId string `json:"scm_id"`
 	Name  string `json:"name"`
 }
 
