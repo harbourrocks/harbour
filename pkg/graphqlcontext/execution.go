@@ -6,13 +6,14 @@ import (
 	"github.com/harbourrocks/harbour/pkg/logconfig"
 )
 
-func ExecuteQuery(ctx context.Context, schema graphql.Schema, query string) *graphql.Result {
+func ExecuteQuery(ctx context.Context, schema graphql.Schema, query string, variables map[string]interface{}) *graphql.Result {
 	log := logconfig.GetLogCtx(ctx)
 
 	result := graphql.Do(graphql.Params{
-		Schema:        schema,
-		RequestString: query,
-		Context:       ctx,
+		Schema:         schema,
+		RequestString:  query,
+		VariableValues: variables,
+		Context:        ctx,
 	})
 
 	if len(result.Errors) > 0 {

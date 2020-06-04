@@ -22,6 +22,9 @@ func UseRequestId(next http.HandlerFunc) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
+		// todo: build a cors middleware ...
+		w.Header().Add("Access-Control-Allow-Origin", "http://localhost:4200")
+
 		var reqId string
 		if reqId = r.Header.Get(ReqIdHeaderName); reqId == "" {
 			// first occurrence
