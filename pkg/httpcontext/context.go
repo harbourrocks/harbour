@@ -25,7 +25,7 @@ func UseRequestId(next http.HandlerFunc) http.HandlerFunc {
 		// todo: build a cors middleware ...
 		w.Header().Add("Access-Control-Allow-Origin", "http://localhost:4200")
 		w.Header().Add("Access-Control-Allow-Credentials", "true")
-		w.Header().Add("Access-Control-Allow-Methods", "*")
+		w.Header().Add("Access-Control-Allow-Methods", "POST, OPTIONS")
 
 		var reqId string
 		if reqId = r.Header.Get(ReqIdHeaderName); reqId == "" {
