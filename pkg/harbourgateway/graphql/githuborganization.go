@@ -6,6 +6,7 @@ import (
 	"github.com/harbourrocks/harbour/pkg/apiclient"
 	"github.com/harbourrocks/harbour/pkg/auth"
 	"github.com/harbourrocks/harbour/pkg/harbourgateway/configuration"
+	"github.com/harbourrocks/harbour/pkg/harbourscm/handler"
 )
 
 var githubOrganizationListType = graphql.NewList(githubOrganizationType)
@@ -108,6 +109,92 @@ func GithubRepositoriesField(options configuration.Options) *graphql.Field {
 			}
 
 			return organizationsResponse, err
+		},
+	}
+}
+
+var githubRegisterAppType = graphql.NewObject(
+	graphql.ObjectConfig{
+		Name:        "RegisterApp",
+		Description: "Type to register an app manually.",
+		Fields: graphql.Fields{
+			"status": &graphql.Field{
+				Type:        graphql.Int,
+				Description: "The Status-Code for the request",
+			},
+		},
+	},
+)
+
+type RegisterAppResponse struct {
+	Status int `json:status`
+}
+
+func GithubRegisterAppField(options configuration.Options) *graphql.Field {
+	return &graphql.Field{
+		Type: githubRegisterAppType,
+		Args: graphql.FieldConfigArgument{
+			"appId": &graphql.ArgumentConfig{
+				Type:        graphql.Int,
+				Description: "The Id for the github application.",
+			},
+			"installationId": &graphql.ArgumentConfig{
+				Type:        graphql.String,
+				Description: "The installation_id of the application.",
+			},
+			"clientId": &graphql.ArgumentConfig{
+				Type:        graphql.String,
+				Description: "The client_id of the application.",
+			},
+			"clientSecret": &graphql.ArgumentConfig{
+				Type:        graphql.String,
+				Description: "The client_secret of the application.",
+			},
+			"privateKey": &graphql.ArgumentConfig{
+				Type:        graphql.String,
+				Description: "The private_key of the application",
+			},
+		}, Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			oidcToken := auth.GetOidcTokenStrCtx(p.Context)
+
+			appId, isOk := p.Args["appId"].(int)
+			if !isOk {
+				return nil, errors.New("appId parameter is missing")
+			}
+
+			clientId, isOk := p.Args["clientId"].(string)
+			if !isOk {
+				return nil, errors.New("clientId parameter is missing")
+			}
+
+			installationId, isOk := p.Args["installationId"].(string)
+			if !isOk {
+				return nil, errors.New("installationId parameter is missing")
+			}
+
+			clientSecret, isOk := p.Args["clientSecret"].(string)
+			if !isOk {
+				return nil, errors.New("clientSecret parameter is missing")
+			}
+
+			privateKey, isOk := p.Args["privateKey"].(string)
+			if !isOk {
+				return nil, errors.New("privateKey parameter is missing")
+			}
+
+			request := &handler.GithubManualRegisterRequest{
+				AppId:          appId,
+				InstallationId: installationId,
+				ClientId:       clientId,
+				ClientSecret:   clientSecret,
+				PrivateKey:     privateKey,
+			}
+
+			rsp, err := apiclient.Post(p.Context, options.SCMConfig.GetManualRegisterUrl(), nil, request, oidcToken, nil)
+			if err != nil || rsp.StatusCode >= 300 {
+				return RegisterAppResponse{Status: rsp.StatusCode}, err
+			}
+			return RegisterAppResponse{Status: rsp.StatusCode}, err
 		},
 	}
 }

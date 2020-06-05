@@ -10,6 +10,8 @@ import (
 	"github.com/docker/docker/builder/dockerignore"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/fileutils"
+	"io"
+	"runtime"
 
 	"github.com/harbourrocks/harbour/pkg/harbourbuild/models"
 	"github.com/harbourrocks/harbour/pkg/redisconfig"
@@ -63,7 +65,10 @@ func (b Builder) buildImage(job models.BuildJob) {
 
 	buildCtx, err := b.createBuildContext(job.FilePath, job.Dockerfile)
 	if err != nil {
-		b.log.WithError(err).Error("Failed to create build context")
+		if err := redisClient.HSet(job.BuildKey, "build_status", "Failed").Err(); err != nil {
+			b.log.WithError(err).Error("Failed to create build context")
+			return
+		}
 		return
 	}
 
@@ -75,25 +80,20 @@ func (b Builder) buildImage(job models.BuildJob) {
 
 	resp, err := b.cli.ImageBuild(b.ctx, buildCtx, opt)
 	if err != nil {
-		b.log.WithError(err).Error("Failed to build image")
+		if err := redisClient.HSet(job.BuildKey, "build_status", "Failed").Err(); err != nil {
+			b.log.WithError(err).Error("Failed to build image")
+			return
+		}
 		return
 	}
 
-	defer func() {
-		err := buildCtx.Close()
-		err = os.Remove(buildCtx.Name())
-		err = os.RemoveAll(job.FilePath)
-		err = resp.Body.Close()
-		if err != nil {
-			b.log.WithError(err).Error("Error while cleaning up build context")
-			return
-		}
-	}()
+	defer b.cleanup(buildCtx, job, resp.Body)
 
 	buf := new(bytes.Buffer)
 	_, err = buf.ReadFrom(resp.Body)
 	if err != nil {
 		b.log.WithError(err).Error("Failed to parse response body")
+		return
 	}
 
 	logs := buf.String()
@@ -115,7 +115,10 @@ func (b Builder) buildImage(job models.BuildJob) {
 	imageString := b.getImageString(job.RegistryUrl, job.Repository, job.Tag)
 
 	if err = b.pushImage(imageString, job.RegistryToken); err != nil {
-		b.log.WithError(err).Error("Error while pushing image to registry")
+		if err := redisClient.HSet(job.BuildKey, "build_status", "Failed", "logs", "Pushing to repository failed").Err(); err != nil {
+			b.log.WithError(err).Error("Error while pushing image to registry")
+			return
+		}
 		return
 	}
 
@@ -125,6 +128,7 @@ func (b Builder) buildImage(job models.BuildJob) {
 func (b Builder) createBuildContext(filePath string, dockerfile string) (*os.File, error) {
 	var excludes = []string{}
 	buildContext := fmt.Sprintf("%s/%s.tar", b.ctxPath, strings.Split(filePath, "/")[1])
+	b.log.Trace(buildContext)
 
 	path := fmt.Sprintf("./%s%s%s", filePath, dockerfile, ".dockerignore")
 	ignore, err := os.Open(path)
@@ -136,24 +140,34 @@ func (b Builder) createBuildContext(filePath string, dockerfile string) (*os.Fil
 		}
 	}
 
-	excludes, err = dockerignore.ReadAll(ignore)
-	if err != nil {
-
+	if err == nil {
+		excludes, err = dockerignore.ReadAll(ignore)
+		if err != nil {
+			b.log.WithError(err).Error("Couldn't read excludes")
+		}
 	}
 
 	patternMatcher, err := fileutils.NewPatternMatcher(excludes)
 	if err != nil {
-
+		b.log.WithError(err).Error("Creation of patternMatcher failed")
+		return nil, err
 	}
 
 	tar := new(archivex.TarFile)
 	err = tar.Create(buildContext)
 	if err != nil {
-		logrus.WithError(err).Error("Couldn't create build context")
+		b.log.WithError(err).Error("Couldn't create build context")
+		return nil, err
 	}
 
 	err = filepath.Walk(filePath, func(path string, info os.FileInfo, err error) error {
-		split := strings.Split(filepath.Clean(path), filePath+"/")
+		var split []string
+		if runtime.GOOS == "windows" {
+			filePath = strings.Replace(filePath, "/", "\\", -1)
+			split = strings.Split(filepath.Clean(path), filePath+"\\")
+		} else {
+			split = strings.Split(filepath.Clean(path), filePath+"/")
+		}
 
 		if len(split) > 1 {
 			excluded, _ := patternMatcher.Matches(split[1])
@@ -205,7 +219,7 @@ func (b Builder) pushImage(image string, token string) error {
 	}
 
 	logs := buf.String()
-	fmt.Println(logs)
+
 	if strings.Contains(logs, "errorDetail") {
 		return fmt.Errorf("unable to push image: %s", logs)
 	}
@@ -218,4 +232,26 @@ func (b Builder) getImageString(registryUrl string, repository string, tag strin
 		return fmt.Sprintf("%s/%s:%s", strings.Split(registryUrl, "//")[1], repository, tag)
 	}
 	return fmt.Sprintf("%s/%s", strings.Split(registryUrl, "//")[1], repository)
+}
+
+func (b Builder) cleanup(buildCtx *os.File, job models.BuildJob, body io.ReadCloser) {
+	if err := buildCtx.Close(); err != nil {
+		b.log.WithError(err).Error("Error while closing BuildCtx")
+		return
+	}
+
+	if err := os.Remove(buildCtx.Name()); err != nil {
+		b.log.WithError(err).Error("Error deleting context")
+		return
+	}
+
+	if err := os.RemoveAll(job.FilePath); err != nil {
+		b.log.WithError(err).Error("Error while deleting SCM-Repository")
+		return
+	}
+
+	if err := body.Close(); err != nil {
+		b.log.WithError(err).Error("Error while deleting body")
+		return
+	}
 }

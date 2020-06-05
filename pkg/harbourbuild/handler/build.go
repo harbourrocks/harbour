@@ -54,7 +54,7 @@ func (b BuildHandler) Build(w http.ResponseWriter, r *http.Request) {
 
 	ctx := context.WithValue(r.Context(), "oidcTokenStr", buildEntry["token"])
 
-	repository := common.Decode(buildEntry["scm_id"])
+	repository := common.Decode(buildEntry["repository"])
 
 	registryToken, err := fetchRegistryToken(ctx, repository, b.config)
 	if err != nil {

@@ -31,6 +31,10 @@ func (c SCMConfig) GetOrganizationsUrl() string {
 	return fmt.Sprintf("%s/github/organizations", c.Url)
 }
 
+func (c SCMConfig) GetManualRegisterUrl() string {
+	return fmt.Sprintf("%s/scm/github/register", c.Url)
+}
+
 func (c SCMConfig) GetRepositoriesUrl(orgLogin string) string {
 	return fmt.Sprintf("%s/github/repositories?org=%s", c.Url, orgLogin)
 }

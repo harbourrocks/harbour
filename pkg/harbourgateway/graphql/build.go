@@ -1,6 +1,7 @@
 package graphql
 
 import (
+	"errors"
 	"github.com/graphql-go/graphql"
 	"github.com/harbourrocks/harbour/pkg/apiclient"
 	"github.com/harbourrocks/harbour/pkg/auth"
@@ -27,9 +28,13 @@ func EnqueueBuildField(options configuration.Options) *graphql.Field {
 		Type:        enqueueBuildType,
 		Description: "Enqueue build with the given information",
 		Args: graphql.FieldConfigArgument{
+			"repository": &graphql.ArgumentConfig{
+				Type:        graphql.String,
+				Description: "Name of the Docker-Repository",
+			},
 			"dockerfile": &graphql.ArgumentConfig{
 				Type:        graphql.String,
-				Description: "Name of dockerfile which should be used for build",
+				Description: "Path to dockerfile which should be used for build",
 			},
 			"tag": &graphql.ArgumentConfig{
 				Type:        graphql.String,
@@ -37,7 +42,7 @@ func EnqueueBuildField(options configuration.Options) *graphql.Field {
 			},
 			"scmId": &graphql.ArgumentConfig{
 				Type:        graphql.String,
-				Description: "Code-Repo which should be built",
+				Description: "SCM-Repository which should be built",
 			},
 			"commit": &graphql.ArgumentConfig{
 				Type:        graphql.String,
@@ -47,30 +52,36 @@ func EnqueueBuildField(options configuration.Options) *graphql.Field {
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			oidcTokenStr := auth.GetOidcTokenStrCtx(p.Context)
 
-			scmId, isOK := p.Args["scmId"].(string)
+			repository, isOK := p.Args["repository"].(string)
 			if !isOK {
-				return nil, nil
+				return nil, errors.New("repository parameter is missing")
 			}
 
 			dockerfile, isOK := p.Args["dockerfile"].(string)
 			if !isOK {
-				return nil, nil
+				return nil, errors.New("dockerfile parameter is missing")
 			}
 
 			tag, isOK := p.Args["tag"].(string)
 			if !isOK {
-				return nil, nil
+				return nil, errors.New("tag parameter is missing")
+			}
+
+			scmId, isOK := p.Args["scmId"].(string)
+			if !isOK {
+				return nil, errors.New("scmId parameter is missing")
 			}
 
 			commit, isOK := p.Args["commit"].(string)
 			if !isOK {
-				return nil, nil
+				return nil, errors.New("commit parameter is missing")
 			}
 
 			build := &models.BuildRequest{
-				SCMId:      scmId,
+				Repository: repository,
 				Dockerfile: dockerfile,
 				Tag:        tag,
+				SCMId:      scmId,
 				Commit:     commit,
 			}
 
