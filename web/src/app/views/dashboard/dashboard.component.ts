@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { GroupModel } from 'src/app/models/group.model';
 import { ListContentModel } from 'src/app/models/list-item';
-import { SearchbarComponent } from 'src/app/components/searchbar/searchbar.component';
+import { TagService } from 'src/app/services/graphQL/tagService/tag.service';
+import { GithubRepositoryService } from 'src/app/services/graphQL/githubRepository/github-repository.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -11,7 +12,7 @@ import { SearchbarComponent } from 'src/app/components/searchbar/searchbar.compo
 export class DashboardComponent implements OnInit {
   public groupArr: Array<GroupModel>;
 
-  constructor() {
+  constructor(private githubRepository: GithubRepositoryService) {
     this.groupArr = [
       {
         listItems: [
@@ -23,7 +24,7 @@ export class DashboardComponent implements OnInit {
           },
           {
             text: "Custom Docker Registry",
-            content: new ListContentModel(SearchbarComponent, ""),
+            content: new ListContentModel(DashboardComponent, ""),
           },
           {
             text: "Search Controller",
@@ -35,6 +36,7 @@ export class DashboardComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.githubRepository.getGithubRepositories("harbourrocks").subscribe(console.log)
   }
 
 }

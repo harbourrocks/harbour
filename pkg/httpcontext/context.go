@@ -47,3 +47,31 @@ func UseJsonResponse(next http.HandlerFunc) http.HandlerFunc {
 
 	return fn
 }
+
+func UseCors(next http.HandlerFunc, allowedUrls []string) http.HandlerFunc {
+
+	allowedUrlsMap := make(map[string]bool)
+	for _, url := range allowedUrls {
+		allowedUrlsMap[url] = true
+	}
+
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		originHeader := r.Header.Get("Origin")
+		if allowedUrlsMap[originHeader] {
+			w.Header().Add("Access-Control-Allow-Origin", originHeader)
+			w.Header().Add("Access-Control-Allow-Credentials", "true")
+			w.Header().Add("Access-Control-Allow-Methods", "POST, OPTIONS")
+			w.Header().Add("Access-Control-Allow-Headers", "*")
+		}
+
+		if r.Method == http.MethodOptions {
+			return // return immediately
+		}
+
+		next.ServeHTTP(w, r.WithContext(ctx))
+	}
+
+	return fn
+}

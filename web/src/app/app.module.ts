@@ -8,7 +8,6 @@ import { RepositoryComponent } from './views/repository/repository.component';
 import { WizardComponent } from './views/wizard/wizard.component';
 import { SettingsComponent } from './views/settings/settings.component';
 import { NavbarComponent } from './components/navbar/navbar.component';
-import { SearchbarComponent } from './components/searchbar/searchbar.component';
 import { GroupsComponent } from './components/groups/groups.component';
 import { ListComponent } from './components/list/list.component';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -27,7 +26,6 @@ import { HttpClientModule } from '@angular/common/http';
     WizardComponent,
     SettingsComponent,
     NavbarComponent,
-    SearchbarComponent,
     GroupsComponent,
     ListComponent,
     ListDirective,
