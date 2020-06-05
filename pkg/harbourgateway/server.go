@@ -41,7 +41,7 @@ func RunGatewayServer(o *configuration.Options) error {
 		},
 	)
 
-	pipeline := httppipeline.DefaultPipeline(o.OIDCConfig, o.Redis)
+	pipeline := httppipeline.CorsPipeline(o.CorsAllowedUrls, o.OIDCConfig, o.Redis)
 	pipeline = httppipeline.WithConfig(pipeline, configuration.GatewayConfigKey, *o)
 
 	http.HandleFunc("/graphql", pipeline(graphqlcontext.UseGraphQl(schema)))

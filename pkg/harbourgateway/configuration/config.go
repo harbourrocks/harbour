@@ -11,9 +11,10 @@ import (
 
 // Options defines all options available to configure the Gateway server.
 type Options struct {
-	Redis          redisconfig.RedisOptions
-	OIDCConfig     auth.OIDCConfig
-	DockerRegistry registry.RegistryConfig
+	Redis           redisconfig.RedisOptions
+	OIDCConfig      auth.OIDCConfig
+	DockerRegistry  registry.RegistryConfig
+	CorsAllowedUrls []string
 	SCMConfig
 	BuildConfig
 }
@@ -64,6 +65,9 @@ func ParseViperConfig() *Options {
 
 	s.SCMConfig.Url = viper.GetString("SCM_URL")
 	s.SCMConfig.Url = strings.Trim(s.SCMConfig.Url, "/")
+
+	allowedUrls := viper.GetString("CORS_ALLOWED_URLS")
+	s.CorsAllowedUrls = strings.Split(allowedUrls, ",")
 
 	return s
 }

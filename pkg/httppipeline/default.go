@@ -33,6 +33,23 @@ func DefaultPipeline(oidcConfig auth.OIDCConfig, redisConfig redisconfig.RedisOp
 	return fn
 }
 
+func CorsPipeline(allowedUrls []string, oidcConfig auth.OIDCConfig, redisConfig redisconfig.RedisOptions) func(http.HandlerFunc) http.HandlerFunc {
+	fn := func(handler http.HandlerFunc) http.HandlerFunc {
+		return httpcontext.
+			UseRequestId(logconfig.
+				UseLogger(httpcontext.
+					UseCors(auth.
+						UseOidcTokenStr(auth.
+							UseOidcToken(auth.
+								UseIdToken(auth.
+									UseAuth(redisconfig.
+										UseRedisConfig(httpcontext.
+											UseJsonResponse(handler), redisConfig))), oidcConfig)), allowedUrls)))
+	}
+
+	return fn
+}
+
 func UnAuthPipeline(redisConfig redisconfig.RedisOptions) func(http.HandlerFunc) http.HandlerFunc {
 	fn := func(handler http.HandlerFunc) http.HandlerFunc {
 		return httpcontext.
