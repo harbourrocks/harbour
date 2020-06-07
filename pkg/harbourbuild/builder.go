@@ -10,13 +10,12 @@ import (
 	"github.com/docker/docker/builder/dockerignore"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/fileutils"
-	"io"
-	"runtime"
-
+	"github.com/google/uuid"
 	"github.com/harbourrocks/harbour/pkg/harbourbuild/models"
 	"github.com/harbourrocks/harbour/pkg/redisconfig"
 	"github.com/jhoonb/archivex"
 	"github.com/sirupsen/logrus"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -26,9 +25,9 @@ type Builder struct {
 	jobChan      chan models.BuildJob
 	cli          *client.Client
 	ctx          context.Context
-	ctxPath      string
 	redisOptions redisconfig.RedisOptions
 	log          *logrus.Entry
+	ctxPath      string
 }
 
 func NewBuilder(jobChan chan models.BuildJob, ctxPath string, redisConfig redisconfig.RedisOptions) (Builder, error) {
@@ -75,11 +74,12 @@ func (b Builder) buildImage(job models.BuildJob) {
 	tag := []string{b.getImageString(job.RegistryUrl, job.Repository, job.Tag)}
 	opt := types.ImageBuildOptions{
 		Tags:       tag,
-		Dockerfile: job.Dockerfile,
+		Dockerfile: filepath.Clean(job.Dockerfile),
 	}
 
 	resp, err := b.cli.ImageBuild(b.ctx, buildCtx, opt)
 	if err != nil {
+		b.log.WithError(err).Error("Error while building image")
 		if err := redisClient.HSet(job.BuildKey, "build_status", "Failed").Err(); err != nil {
 			b.log.WithError(err).Error("Failed to build image")
 			return
@@ -126,8 +126,10 @@ func (b Builder) buildImage(job models.BuildJob) {
 }
 
 func (b Builder) createBuildContext(filePath string, dockerfile string) (*os.File, error) {
-	var excludes = []string{}
-	buildContext := fmt.Sprintf("%s/%s.tar", b.ctxPath, strings.Split(filePath, "/")[1])
+	var excludes []string
+
+	buildCtxFile := uuid.New().String()
+	buildContext := fmt.Sprintf("%s/%s.tar", b.ctxPath, buildCtxFile)
 	b.log.Trace(buildContext)
 
 	path := fmt.Sprintf("./%s%s%s", filePath, dockerfile, ".dockerignore")
@@ -161,27 +163,27 @@ func (b Builder) createBuildContext(filePath string, dockerfile string) (*os.Fil
 	}
 
 	err = filepath.Walk(filePath, func(path string, info os.FileInfo, err error) error {
-		var split []string
-		if runtime.GOOS == "windows" {
-			filePath = strings.Replace(filePath, "/", "\\", -1)
-			split = strings.Split(filepath.Clean(path), filePath+"\\")
-		} else {
-			split = strings.Split(filepath.Clean(path), filePath+"/")
+
+		pathToFile, err := filepath.Rel(filePath, path)
+		if err != nil {
+			return err
 		}
 
-		if len(split) > 1 {
-			excluded, _ := patternMatcher.Matches(split[1])
-			if !excluded {
-				file, _ := os.Open(path)
-				tar.Add(split[1], file, nil)
+		excluded, _ := patternMatcher.Matches(pathToFile)
+		if !excluded {
+			file, _ := os.Open(path)
+			if err := tar.Add(pathToFile, file, nil); err != nil {
+				b.log.WithError(err).Error("Error while adding file to path")
 			}
-			return nil
 		}
-
 		return nil
 	})
 
 	err = tar.Close()
+	if err != nil {
+		return nil, err
+	}
+
 	dockerBuildCtx, err := os.Open(buildContext)
 	if err != nil {
 		return nil, err
@@ -235,6 +237,7 @@ func (b Builder) getImageString(registryUrl string, repository string, tag strin
 }
 
 func (b Builder) cleanup(buildCtx *os.File, job models.BuildJob, body io.ReadCloser) {
+
 	if err := buildCtx.Close(); err != nil {
 		b.log.WithError(err).Error("Error while closing BuildCtx")
 		return

@@ -8,7 +8,6 @@ import (
 	"github.com/harbourrocks/harbour/pkg/auth"
 	"github.com/harbourrocks/harbour/pkg/harbourbuild/configuration"
 	"github.com/harbourrocks/harbour/pkg/harbourbuild/models"
-	"github.com/harbourrocks/harbour/pkg/harbourscm/common"
 	"github.com/harbourrocks/harbour/pkg/harbourscm/worker"
 	"github.com/harbourrocks/harbour/pkg/httpcontext"
 	"github.com/harbourrocks/harbour/pkg/httphelper"
@@ -54,7 +53,7 @@ func (b BuildHandler) Build(w http.ResponseWriter, r *http.Request) {
 
 	ctx := context.WithValue(r.Context(), "oidcTokenStr", buildEntry["token"])
 
-	repository := common.Decode(buildEntry["repository"])
+	repository := buildEntry["repository"]
 
 	registryToken, err := fetchRegistryToken(ctx, repository, b.config)
 	if err != nil {

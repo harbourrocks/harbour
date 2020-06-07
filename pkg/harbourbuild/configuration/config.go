@@ -4,7 +4,9 @@ import (
 	"github.com/harbourrocks/harbour/pkg/auth"
 	"github.com/harbourrocks/harbour/pkg/redisconfig"
 	"github.com/harbourrocks/harbour/pkg/registry"
+	l "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"os"
 )
 
 type Options struct {
@@ -28,6 +30,12 @@ func ParseViperConfig() *Options {
 	s := NewDefaultOptions()
 
 	s.ContextPath = viper.GetString("CONTEXT_PATH")
+	if s.ContextPath == "" {
+		l.Fatal("Missing CONTEXT_PATH")
+	} else if path, err := os.Stat(s.ContextPath); os.IsNotExist(err) || !path.IsDir() {
+		l.Fatal("CONTEXT_PATH not found or a file")
+	}
+
 	s.OIDCConfig = auth.ParseViperConfig()
 	s.Redis = redisconfig.ParseViperConfig()
 	s.DockerRegistry = registry.ParseViperConfig()

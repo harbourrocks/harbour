@@ -4,4 +4,6 @@ scripts/ngrok
 
 deployments/registry/registry-auth*
 
+buildcontext
+
 workplace
