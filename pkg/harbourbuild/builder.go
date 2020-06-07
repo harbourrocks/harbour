@@ -163,7 +163,6 @@ func (b Builder) createBuildContext(filePath string, dockerfile string) (*os.Fil
 	}
 
 	err = filepath.Walk(filePath, func(path string, info os.FileInfo, err error) error {
-
 		pathToFile, err := filepath.Rel(filePath, path)
 		if err != nil {
 			return err
@@ -171,9 +170,15 @@ func (b Builder) createBuildContext(filePath string, dockerfile string) (*os.Fil
 
 		excluded, _ := patternMatcher.Matches(pathToFile)
 		if !excluded {
-			file, _ := os.Open(path)
+			file, err := os.Open(path)
+			if err != nil {
+				b.log.WithError(err).Errorf("File %s could not be added to tar", path)
+			}
 			if err := tar.Add(pathToFile, file, nil); err != nil {
-				b.log.WithError(err).Error("Error while adding file to path")
+				b.log.WithError(err).Errorf("Error while adding file %s to path", path)
+			}
+			if err := file.Close(); err != nil {
+				b.log.WithError(err).Errorf("File %s could not be closed", path)
 			}
 		}
 		return nil
@@ -240,7 +245,7 @@ func (b Builder) cleanup(buildCtx *os.File, job models.BuildJob, body io.ReadClo
 
 	if err := buildCtx.Close(); err != nil {
 		b.log.WithError(err).Error("Error while closing BuildCtx")
-		return
+
 	}
 
 	if err := os.Remove(buildCtx.Name()); err != nil {
