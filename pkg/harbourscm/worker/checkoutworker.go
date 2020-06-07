@@ -10,8 +10,10 @@ type CheckoutCompletedModel struct {
 }
 
 func (w CheckoutWorker) DoWork() {
-	select {
-	case task := <-w.Github:
-		CheckoutGithub(task)
+	for {
+		select {
+		case task := <-w.Github:
+			CheckoutGithub(task)
+		}
 	}
 }

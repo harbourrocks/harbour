@@ -19,7 +19,7 @@ type CheckoutRequestModel struct {
 }
 
 type CheckoutHandler struct {
-	Github chan<- worker.GithubCheckoutTask
+	Github chan worker.GithubCheckoutTask
 }
 
 // Checkout clones the specified repository from a connected source control manager

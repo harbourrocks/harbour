@@ -15,7 +15,6 @@ import (
 	"github.com/harbourrocks/harbour/pkg/redisconfig"
 	"github.com/jhoonb/archivex"
 	"github.com/sirupsen/logrus"
-	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -79,6 +78,7 @@ func (b Builder) buildImage(job models.BuildJob) {
 
 	resp, err := b.cli.ImageBuild(b.ctx, buildCtx, opt)
 	if err != nil {
+		b.cleanup(buildCtx, job)
 		b.log.WithError(err).Error("Error while building image")
 		if err := redisClient.HSet(job.BuildKey, "build_status", "Failed").Err(); err != nil {
 			b.log.WithError(err).Error("Failed to build image")
@@ -87,12 +87,17 @@ func (b Builder) buildImage(job models.BuildJob) {
 		return
 	}
 
-	defer b.cleanup(buildCtx, job, resp.Body)
+	defer b.cleanup(buildCtx, job)
 
 	buf := new(bytes.Buffer)
 	_, err = buf.ReadFrom(resp.Body)
 	if err != nil {
 		b.log.WithError(err).Error("Failed to parse response body")
+		return
+	}
+
+	if err := resp.Body.Close(); err != nil {
+		b.log.WithError(err).Error("Error while closing body")
 		return
 	}
 
@@ -169,7 +174,7 @@ func (b Builder) createBuildContext(filePath string, dockerfile string) (*os.Fil
 		}
 
 		excluded, _ := patternMatcher.Matches(pathToFile)
-		if !excluded {
+		if !excluded && !info.IsDir() {
 			file, err := os.Open(path)
 			if err != nil {
 				b.log.WithError(err).Errorf("File %s could not be added to tar", path)
@@ -241,12 +246,7 @@ func (b Builder) getImageString(registryUrl string, repository string, tag strin
 	return fmt.Sprintf("%s/%s", strings.Split(registryUrl, "//")[1], repository)
 }
 
-func (b Builder) cleanup(buildCtx *os.File, job models.BuildJob, body io.ReadCloser) {
-
-	if err := buildCtx.Close(); err != nil {
-		b.log.WithError(err).Error("Error while closing BuildCtx")
-
-	}
+func (b Builder) cleanup(buildCtx *os.File, job models.BuildJob) {
 
 	if err := os.Remove(buildCtx.Name()); err != nil {
 		b.log.WithError(err).Error("Error deleting context")
@@ -255,11 +255,6 @@ func (b Builder) cleanup(buildCtx *os.File, job models.BuildJob, body io.ReadClo
 
 	if err := os.RemoveAll(job.FilePath); err != nil {
 		b.log.WithError(err).Error("Error while deleting SCM-Repository")
-		return
-	}
-
-	if err := body.Close(); err != nil {
-		b.log.WithError(err).Error("Error while deleting body")
 		return
 	}
 }

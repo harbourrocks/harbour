@@ -22,6 +22,11 @@ func RunSCMServer(o *configuration.Options) error {
 		Github: githubCh,
 	}
 
+	// start worker
+	go worker.CheckoutWorker{
+		Github: githubCh,
+	}.DoWork()
+
 	http.HandleFunc("/scm/github/manifest", pipeline(handler.Manifest))
 	http.HandleFunc("/scm/github/register", pipeline(handler.GithubManualRegister))
 	http.HandleFunc("/checkout", pipeline(checkoutHandler.Checkout))
@@ -41,11 +46,6 @@ func RunSCMServer(o *configuration.Options) error {
 	http.HandleFunc("/scm/github/callback", func(w http.ResponseWriter, r *http.Request) {
 		logrus.Trace(r)
 	})
-
-	// start worker
-	go worker.CheckoutWorker{
-		Github: githubCh,
-	}.DoWork()
 
 	bindAddress := "0.0.0.0:5300"
 	logrus.Info(fmt.Sprintf("Listening on httphandler://%s/", bindAddress))

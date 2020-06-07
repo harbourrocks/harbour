@@ -14,6 +14,7 @@ import (
 	"github.com/harbourrocks/harbour/pkg/logconfig"
 	"github.com/harbourrocks/harbour/pkg/redisconfig"
 	"net/http"
+	"time"
 )
 
 type EnqueueHandler struct {
@@ -26,6 +27,7 @@ func NewEnqueueHandler(config *configuration.Options) EnqueueHandler {
 
 func (eh EnqueueHandler) EnqueueBuild(w http.ResponseWriter, r *http.Request) {
 	log := logconfig.GetLogReq(r)
+	redisClient := redisconfig.GetRedisClientReq(r)
 
 	var buildRequest models.BuildRequest
 	if err := httphelper.ReadRequest(r, w, &buildRequest); err != nil {
@@ -52,6 +54,10 @@ func (eh EnqueueHandler) EnqueueBuild(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.WithError(err).Error("checkout request failed")
 		w.WriteHeader(http.StatusInternalServerError)
+		if err := redisClient.HSet(buildKey, "build_status", "Failed").Err(); err != nil {
+			log.WithError(err).Error("Failed checkout repository")
+			return
+		}
 		return
 	}
 
@@ -78,7 +84,8 @@ func createBuildEntry(ctx context.Context, request models.BuildRequest) (string,
 		"logs", nil,
 		"tag", request.Tag,
 		"dockerfile", request.Dockerfile,
-		"build_status", "Pending").Err()
+		"build_status", "Pending",
+		"timestamp", time.Now().Unix()).Err()
 
 	if err != nil {
 		return buildKey, err

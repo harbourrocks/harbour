@@ -14,7 +14,6 @@ import (
 	"github.com/harbourrocks/harbour/pkg/logconfig"
 	"github.com/harbourrocks/harbour/pkg/redisconfig"
 	registryModels "github.com/harbourrocks/harbour/pkg/registry/models"
-	l "github.com/sirupsen/logrus"
 	"net/http"
 )
 
@@ -36,16 +35,27 @@ func (b BuildHandler) Build(w http.ResponseWriter, r *http.Request) {
 	var checkoutResponse worker.CheckoutCompletedModel
 	if err := httphelper.ReadRequest(r, w, &checkoutResponse); err != nil {
 		log.WithError(err).Error("Failed to parse build request")
+		if err := client.HSet(buildKey, "build_status", "Failed").Err(); err != nil {
+			log.WithError(err).Error("Failed to save build data")
+			return
+		}
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	if checkoutResponse.Success != true {
+		if err := client.HSet(buildKey, "build_status", "Failed").Err(); err != nil {
+			log.WithError(err).Error("Failed to save build data")
+			return
+		}
 	}
 
 	redisBuildEntry := client.HGetAll(buildKey)
 	if err := redisBuildEntry.Err(); err != redis.Nil && err != nil {
-		l.WithError(err).Error("Failed to load build data")
+		if err := client.HSet(buildKey, "build_status", "Failed").Err(); err != nil {
+			log.WithError(err).Error("Failed to save build data")
+			return
+		}
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -57,6 +67,10 @@ func (b BuildHandler) Build(w http.ResponseWriter, r *http.Request) {
 
 	registryToken, err := fetchRegistryToken(ctx, repository, b.config)
 	if err != nil {
+		if err := client.HSet(buildKey, "build_status", "Failed").Err(); err != nil {
+			log.WithError(err).Error("Failed to save build data")
+			return
+		}
 		return // Error is already logged in get
 	}
 
