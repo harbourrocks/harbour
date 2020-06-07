@@ -50,7 +50,7 @@ func (eh EnqueueHandler) EnqueueBuild(w http.ResponseWriter, r *http.Request) {
 		Commit:      buildRequest.Commit,
 	}
 
-	_, err = apiclient.Post(r.Context(), "http://localhost:5300/checkout", nil, body, auth.GetOidcTokenStrCtx(r.Context()), nil)
+	_, err = apiclient.Post(r.Context(), eh.config.GetCheckoutUrl(), nil, body, auth.GetOidcTokenStrCtx(r.Context()), nil)
 	if err != nil {
 		log.WithError(err).Error("checkout request failed")
 		w.WriteHeader(http.StatusInternalServerError)

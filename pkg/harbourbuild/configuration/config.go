@@ -1,6 +1,7 @@
 package configuration
 
 import (
+	"fmt"
 	"github.com/harbourrocks/harbour/pkg/auth"
 	"github.com/harbourrocks/harbour/pkg/redisconfig"
 	"github.com/harbourrocks/harbour/pkg/registry"
@@ -14,6 +15,15 @@ type Options struct {
 	Redis          redisconfig.RedisOptions
 	OIDCConfig     auth.OIDCConfig
 	DockerRegistry registry.RegistryConfig
+	SCMConfig
+}
+
+type SCMConfig struct {
+	Url string
+}
+
+func (c SCMConfig) GetCheckoutUrl() string {
+	return fmt.Sprintf("%s/checkout", c.Url)
 }
 
 func NewDefaultOptions() *Options {
@@ -21,6 +31,9 @@ func NewDefaultOptions() *Options {
 		ContextPath: "",
 		Redis:       redisconfig.NewDefaultRedisOptions(),
 		OIDCConfig:  auth.DefaultConfig(),
+		SCMConfig: SCMConfig{
+			Url: "http://localhost:5300",
+		},
 	}
 
 	return &s
