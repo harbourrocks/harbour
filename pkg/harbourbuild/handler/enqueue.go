@@ -73,13 +73,18 @@ func (eh EnqueueHandler) EnqueueBuild(w http.ResponseWriter, r *http.Request) {
 func createBuildEntry(ctx context.Context, request models.BuildRequest) (string, error) {
 	client := redisconfig.GetRedisClientCtx(ctx)
 
-	buildId := uuid.New()
-	buildKey := redis.BuildKey(buildId.String())
+	repoKey := redis.RepoKey(request.SCMId, request.Repository)
+	buildKey := redis.BuildKey(uuid.New().String())
 
-	err := client.HSet(buildKey,
+	err := client.SAdd(repoKey, buildKey).Err()
+	if err != nil {
+		return buildKey, err
+	}
+
+	err = client.HSet(buildKey,
 		"token", auth.GetOidcTokenStrCtx(ctx),
 		"repository", request.Repository,
-		"scmId", request.SCMId,
+		"scm_id", request.SCMId,
 		"commit", request.Commit,
 		"logs", nil,
 		"tag", request.Tag,
