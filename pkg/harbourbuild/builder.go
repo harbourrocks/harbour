@@ -67,6 +67,7 @@ func (b Builder) buildImage(job models.BuildJob) {
 			b.log.WithError(err).Error("Failed to create build context")
 			return
 		}
+
 		return
 	}
 

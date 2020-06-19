@@ -34,6 +34,7 @@ func RunBuildServer(o *configuration.Options) error {
 	unPipeline = httppipeline.WithConfig(unPipeline, configuration.BuildConfigKey, *o)
 
 	http.HandleFunc("/enqueue", pipeline(enqueueHandler.EnqueueBuild))
+	http.HandleFunc("/builds", pipeline(handler.RepositoryBuilds))
 	http.HandleFunc("/build", unPipeline(buildHandler.Build))
 
 	bindAddress := "127.0.0.1:5200"
