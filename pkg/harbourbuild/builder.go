@@ -138,7 +138,7 @@ func (b Builder) createBuildContext(filePath string, dockerfile string) (*os.Fil
 	buildContext := fmt.Sprintf("%s/%s.tar", b.ctxPath, buildCtxFile)
 	b.log.Trace(buildContext)
 
-	path := fmt.Sprintf("./%s%s%s", filePath, dockerfile, ".dockerignore")
+	path := filepath.Clean(fmt.Sprintf("./%s/%s%s", filePath, dockerfile, ".dockerignore"))
 	ignore, err := os.Open(path)
 	if os.IsNotExist(err) {
 		b.log.Trace("Fallback to root .dockerignore")
