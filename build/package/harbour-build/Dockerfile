@@ -5,6 +5,7 @@ ENV GO111MODULE=on
 WORKDIR /module
 COPY . /module/
 RUN CGO_ENABLED=0 GOOS=linux go build -o harbour-build /module/cmd/harbour-build
+RUN ls
 
 # final stage
 FROM scratch
