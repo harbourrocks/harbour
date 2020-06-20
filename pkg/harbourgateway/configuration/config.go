@@ -43,6 +43,10 @@ func (b BuildConfig) GetEnqueueBuildUrl() string {
 	return fmt.Sprintf("%s/enqueue", b.Url)
 }
 
+func (b BuildConfig) GetRepositoryBuilds() string {
+	return fmt.Sprintf("%s/builds", b.Url)
+}
+
 // NewDefaultOptions returns the default options
 func NewDefaultOptions() *Options {
 	s := Options{
