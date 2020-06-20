@@ -23,6 +23,7 @@ func RunGatewayServer(o *configuration.Options) error {
 				"tags":                graphql2.TagsField(*o),
 				"githubOrganizations": graphql2.GithubOrganizationsField(*o),
 				"githubRepositories":  graphql2.GithubRepositoriesField(*o),
+				"repositoryBuilds":    graphql2.GetBuildsField(*o),
 			},
 		})
 
