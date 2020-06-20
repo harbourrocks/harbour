@@ -74,7 +74,7 @@ func (b Builder) buildImage(job models.BuildJob) {
 	tag := []string{b.getImageString(job.RegistryUrl, job.Repository, job.Tag)}
 	opt := types.ImageBuildOptions{
 		Tags:       tag,
-		Dockerfile: filepath.Clean(job.Dockerfile),
+		Dockerfile: job.Dockerfile,
 	}
 
 	resp, err := b.cli.ImageBuild(b.ctx, buildCtx, opt)
@@ -180,7 +180,7 @@ func (b Builder) createBuildContext(filePath string, dockerfile string) (*os.Fil
 			if err != nil {
 				b.log.WithError(err).Errorf("File %s could not be added to tar", path)
 			}
-			if err := tar.Add(pathToFile, file, nil); err != nil {
+			if err := tar.Add(filepath.ToSlash(pathToFile), file, nil); err != nil {
 				b.log.WithError(err).Errorf("Error while adding file %s to path", path)
 			}
 			if err := file.Close(); err != nil {
