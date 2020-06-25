@@ -10,6 +10,7 @@
       <env name="IAM_BASE_URL" value="http://localhost:5100" />
       <env name="SCM_URL" value="http://localhost:5300" />
       <env name="CORS_ALLOWED_URLS" value="http://localhost:4200" />
+      <env name="BUILD_URL" value="http://localhost:5200" />
     </envs>
     <kind value="PACKAGE" />
     <filePath value="$PROJECT_DIR$/cmd/harbour-iam/main.go" />

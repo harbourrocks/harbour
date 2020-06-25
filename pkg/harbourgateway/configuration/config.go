@@ -17,6 +17,7 @@ type Options struct {
 	CorsAllowedUrls []string
 	SCMConfig
 	BuildConfig
+	IAMConfig
 }
 
 type SCMConfig struct {
@@ -24,6 +25,10 @@ type SCMConfig struct {
 }
 
 type BuildConfig struct {
+	Url string
+}
+
+type IAMConfig struct {
 	Url string
 }
 
@@ -47,6 +52,10 @@ func (b BuildConfig) GetRepositoryBuilds() string {
 	return fmt.Sprintf("%s/builds", b.Url)
 }
 
+func (i IAMConfig) GetDockerPasswordSetUrl() string {
+	return fmt.Sprintf("%s/docker/password", i.Url)
+}
+
 // NewDefaultOptions returns the default options
 func NewDefaultOptions() *Options {
 	s := Options{
@@ -57,6 +66,9 @@ func NewDefaultOptions() *Options {
 		},
 		BuildConfig: BuildConfig{
 			Url: "http://localhost:5200",
+		},
+		IAMConfig: IAMConfig{
+			Url: "http://localhost:5100",
 		},
 	}
 
@@ -73,6 +85,12 @@ func ParseViperConfig() *Options {
 
 	s.SCMConfig.Url = viper.GetString("SCM_URL")
 	s.SCMConfig.Url = strings.Trim(s.SCMConfig.Url, "/")
+
+	s.BuildConfig.Url = viper.GetString("BUILD_URL")
+	s.BuildConfig.Url = strings.Trim(s.BuildConfig.Url, "/")
+
+	s.IAMConfig.Url = viper.GetString("IAM_BASE_URL")
+	s.IAMConfig.Url = strings.Trim(s.IAMConfig.Url, "/")
 
 	allowedUrls := viper.GetString("CORS_ALLOWED_URLS")
 	s.CorsAllowedUrls = strings.Split(allowedUrls, ",")
