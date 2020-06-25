@@ -12,7 +12,7 @@ export class RepositoryService {
 
   constructor(private apollo: Apollo) { }
 
-  getGithubOrganizations() {
+  getRepositories() {
     return this.apollo.query({
       query: gql`
         {
