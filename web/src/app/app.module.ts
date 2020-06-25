@@ -15,8 +15,9 @@ import { ListDirective } from './components/list/list.directive';
 import { AddgroupComponent } from './components/addgroup/addgroup.component';
 import { RepositoryDetailComponent } from './views/repository-detail/repository-detail.component';
 import { ListDetailsComponent } from './components/list-details/list-details.component';
-import { GraphQLModule } from './graphql.module';
+import { GraphQLModule } from './services/graphQL/graphql.module';
 import { HttpClientModule } from '@angular/common/http';
+import { ButtonComponent } from './components/button/button.component';
 
 @NgModule({
   declarations: [
@@ -31,7 +32,8 @@ import { HttpClientModule } from '@angular/common/http';
     ListDirective,
     AddgroupComponent,
     RepositoryDetailComponent,
-    ListDetailsComponent
+    ListDetailsComponent,
+    ButtonComponent
   ],
   imports: [
     BrowserModule,

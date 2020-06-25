@@ -1,4 +1,4 @@
-@import "../../../assets/colors.scss";
+@import "colors.scss";
 
 .list{
     background: #FFFFFF;
@@ -14,7 +14,7 @@
 
     &-text {
     font-size: 25px;
-    color: $color-dark-grey;
+    color: #333;
     font-weight: bold;
     line-height: 64px;
     padding-left: 50px;
