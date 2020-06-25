@@ -1,0 +1,20 @@
+@import "colors.scss";
+
+.item {
+  background-color: $color-white;
+  border: 1px solid #9ba2ab;
+  font-size: 22px;
+  padding-left: 50px;
+  height: 125px;;
+
+  &-name {
+      margin-top: 16px;
+      margin-bottom: 10px;
+  }
+
+  &-info {
+    font-size: 14px;
+    margin-bottom: 3px;
+    padding-left: 4px;
+  }
+}
