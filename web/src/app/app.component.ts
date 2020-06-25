@@ -10,7 +10,6 @@ export class AppComponent {
 
   public settingRouteConfig = {
     icon: faCog,
-    route: "setting",
+    route: "settings",
   }
-
 }
