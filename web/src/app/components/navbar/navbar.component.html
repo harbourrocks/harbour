@@ -1,8 +1,9 @@
 <div class="navbar">
     <ul class="list">
-        <li *ngFor="let item of navbarBuild" class="list-item">
-            <fa-icon class="list-icon" [icon]="item.icon"></fa-icon>
+        <li #listItem *ngFor="let item of navbarBuild;let i = index" class="list-item"
+        (mouseenter)="onMouseEnter(listItem)" (mouseleave)="onMouseLeave()" (click)="onClick(listItem, i)">
             <a [routerLink]="item.routerLink" class="list-link">{{item.text}}</a>
         </li>
     </ul>
+    <div #underscore class="list-underscore"></div>
 </div>

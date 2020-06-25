@@ -18,6 +18,7 @@ import { ListDetailsComponent } from './components/list-details/list-details.com
 import { GraphQLModule } from './services/graphQL/graphql.module';
 import { HttpClientModule } from '@angular/common/http';
 import { ButtonComponent } from './components/button/button.component';
+import { RouterIconComponent } from './components/router-icon/router-icon.component';
 
 @NgModule({
   declarations: [
@@ -33,7 +34,8 @@ import { ButtonComponent } from './components/button/button.component';
     AddgroupComponent,
     RepositoryDetailComponent,
     ListDetailsComponent,
-    ButtonComponent
+    ButtonComponent,
+    RouterIconComponent
   ],
   imports: [
     BrowserModule,

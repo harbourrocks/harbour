@@ -1,20 +1,33 @@
 .app {
-    padding-top: 50px;
-    width: 1400px;
-    margin: 0 auto;
+  &-header {
+    position: absolute;
+    top: 142px;
+    left: 115px;
+  }
+
+  &-wrapper {
+    margin-left: 540px;
+    margin-top: 220px;
+
+    &--navbar {
+      display: flex;
+      flex-flow: row nowrap;
+      justify-content: space-between;
+      margin-right: 280px;
+    }
+  }
 }
 
 .flex-wrapper {
-    display: flex;
-    flex-flow: row nowrap;
+  display: flex;
+  flex-flow: row nowrap;
 }
 
 .container {
-    padding-top: 80px;
-    width: 77%;;
+  padding-top: 80px;
+  width: 77%;
 }
 
-
 .navbar {
-    width: 23%;
+  width: 23%;
 }

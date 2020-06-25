@@ -3,8 +3,16 @@
 .button {
   width: 234px;
   height: 54px;
-
-  background: black;
+  background: $color-primary;
   box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.25);
   border-radius: 2px;
+  position: relative;
+
+  &__text {
+    position: absolute;
+    left: 50%;
+    right: 50%;
+    transform: translate(-50%,-50%);
+    color: $color-white;
+  }
 }

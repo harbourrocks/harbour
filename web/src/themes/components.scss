@@ -1,0 +1,26 @@
+@import "colors.scss";
+
+.hb-header-1 {
+  font-size: 64px;
+  line-height: 78px;
+  color: $color-primary;
+  font-weight: 400;
+}
+
+.hb-header-2 {
+  font-size: 48px;
+  line-height: 59px;
+  color: $color-secondary;
+  font-weight: 400;
+}
+
+.hb-input {
+  border: 1px solid $color-stroke;
+
+  &::placeholder {
+    padding-left: 30px;
+    font-size: 18px;
+    line-height: 22px;
+    color: $color-leightGrey;
+  }
+}

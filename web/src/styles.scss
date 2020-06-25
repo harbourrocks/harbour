@@ -2,6 +2,7 @@
 // @import url('https://fonts.googleapis.com/css2?family=Baloo+Thambi+2:wght@400;500;600&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500&display=swap');
 @import "normalize.scss";
+@import "colors.scss";
 body, html {
     margin: 0;
     padding: 0;
@@ -9,6 +10,7 @@ body, html {
     font-family: 'Montserrat', sans-serif; 
     background-color: #F9F9F9;
     overflow: hidden;
+    color: $color-font;
 }
 
 input {
@@ -41,3 +43,5 @@ html {
     background-color: var(--scrollbarBG) ;
     border-radius: 6px;
   }
+
+  @import "components.scss"
