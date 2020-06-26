@@ -1,19 +1,20 @@
 .app {
   &-header {
     position: absolute;
-    top: 142px;
-    left: 115px;
+    top: 100px;
+    left: 80px;
   }
 
   &-wrapper {
-    margin-left: 540px;
-    margin-top: 220px;
+    margin-left: 470px;
+    margin-top: 140px;
+    
+    margin-right: 214px;
 
     &--navbar {
       display: flex;
       flex-flow: row nowrap;
       justify-content: space-between;
-      margin-right: 280px;
     }
   }
 }

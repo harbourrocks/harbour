@@ -4,30 +4,21 @@
   list-style: none;
   padding-left: 0;
   display: flex;
-  flex-flow: row nowrap;
+  flex-flow: column nowrap;
   margin-bottom: 140px;
   margin-top: 0;
-  justify-content: flex-start;
-
-  > *:not(:first-child) {
-    margin-left: 30px;
-  }
 
   &-item {
     text-decoration: none;
-    font-size: 22px;
+    font-size: 24px;
     cursor: pointer;
-  }
-
-  &-link {
-    text-decoration: none;
-    font-size: 22px;
+    margin-bottom: 40px;
   }
 
   &-underscore {
-    height: 1px;
+    height: 50px;
     background: $color-primary;
-    width: 200px;
+    width: 1px;
     position: absolute;
     transition: all 0.35s;
   }

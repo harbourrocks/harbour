@@ -26,8 +26,8 @@ export class NavbarComponent implements OnInit {
       text: "Repository",
     },
     {
-      routerLink: "/settings",
-      text: "Settings",
+      routerLink: "/builds",
+      text: "Builds",
     },
 
   ]

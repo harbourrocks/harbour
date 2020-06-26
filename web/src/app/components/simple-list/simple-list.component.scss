@@ -1,0 +1,51 @@
+@import "colors.scss";
+
+$heightOfCell: 80px;
+
+.list {
+  list-style: none;
+  
+  padding: 0;
+
+  &-item {
+    height: $heightOfCell;
+
+    display: flex;
+    flex-flow: row nowrap;
+    position: relative;
+
+    border-bottom: 1px solid $color-font;
+    
+    background: $color-white;
+
+    &:nth-child(2n) {
+      background: initial;
+    }
+
+    & * {
+      line-height: $heightOfCell;
+    }
+
+    &__icon {
+      height: 45px;
+      margin-top: calc((#{$heightOfCell} - 45px) / 2);
+      margin-left: 40px;
+    }
+
+    &__label {
+      font-size: 24px;
+      margin-left: 75px;
+    }
+
+    &__after-label {
+      font-size: 24px;
+      margin-left: auto;
+      margin-right: 60px;
+    }
+
+    &__close {
+      right: 100px;
+      position: absolute;
+    }
+  }
+}

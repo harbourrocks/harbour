@@ -1,0 +1,8 @@
+<ul class="list">
+    <li class="list-item" *ngFor="let item of listItems">
+        <img class="list-item__icon" [src]="item.icon" *ngIf="item.icon">
+        <div class="list-item__label">{{item.label}}</div>
+        <div class="list-item__after-label" *ngIf="item.afterLabel">{{item.afterLabel}}</div>
+        <fa-icon *ngIf="deletable" class="list-item__close" [icon]="closeIcon"></fa-icon>
+    </li>
+</ul>

@@ -20,6 +20,9 @@ import { HttpClientModule } from '@angular/common/http';
 import { ButtonComponent } from './components/button/button.component';
 import { RouterIconComponent } from './components/router-icon/router-icon.component';
 import { DashboardListItemComponent } from './components/dashboard-list-item/dashboard-list-item.component';
+import { SimpleListComponent } from './components/simple-list/simple-list.component';
+import { VerticalNavbarComponent } from './components/vertical-navbar/vertical-navbar.component';
+import { BuildsComponent } from './views/builds/builds.component';
 
 @NgModule({
   declarations: [
@@ -37,7 +40,10 @@ import { DashboardListItemComponent } from './components/dashboard-list-item/das
     ListDetailsComponent,
     ButtonComponent,
     RouterIconComponent,
-    DashboardListItemComponent
+    DashboardListItemComponent,
+    SimpleListComponent,
+    VerticalNavbarComponent,
+    BuildsComponent
   ],
   imports: [
     BrowserModule,

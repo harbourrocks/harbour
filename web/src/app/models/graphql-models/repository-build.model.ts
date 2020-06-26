@@ -4,7 +4,7 @@ export interface RepositoryBuild {
     timestamp: number,
 }
 
-enum BuildStatus {
+export enum BuildStatus {
     "Pending",
     "Running",
     "Success",
