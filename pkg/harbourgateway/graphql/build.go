@@ -7,6 +7,7 @@ import (
 	"github.com/harbourrocks/harbour/pkg/auth"
 	"github.com/harbourrocks/harbour/pkg/harbourbuild/handler"
 	"github.com/harbourrocks/harbour/pkg/harbourbuild/models"
+	"github.com/harbourrocks/harbour/pkg/harbourbuild/redis"
 	"github.com/harbourrocks/harbour/pkg/harbourgateway/configuration"
 	"github.com/harbourrocks/harbour/pkg/harbourgateway/model"
 )
@@ -117,16 +118,22 @@ var buildType = graphql.NewObject(
 			"commit": &graphql.Field{
 				Type: graphql.String,
 			},
-			"timestamp": &graphql.Field{
+			"timeStamp": &graphql.Field{
+				Type: graphql.Int,
+			},
+			"startTime": &graphql.Field{
+				Type: graphql.Int,
+			},
+			"endTime": &graphql.Field{
 				Type: graphql.Int,
 			},
 		},
 	})
 
-func GetBuildsField(options configuration.Options) *graphql.Field {
+func GetBuildsWithSCMField(options configuration.Options) *graphql.Field {
 	return &graphql.Field{
 		Type:        buildListType,
-		Description: "Receive all builds for a repository",
+		Description: "Receive all builds for a repository and scmId",
 		Args: graphql.FieldConfigArgument{
 			"repository": &graphql.ArgumentConfig{
 				Type:        graphql.String,
@@ -151,8 +158,82 @@ func GetBuildsField(options configuration.Options) *graphql.Field {
 			}
 
 			build := &handler.RepositoryBuildsRequest{
-				Repository: repository,
-				SCMId:      scmId,
+				ParentKey: redis.ScmRepoKey(scmId, repository),
+			}
+
+			var response []handler.Build
+			_, err := apiclient.Post(p.Context, options.BuildConfig.GetRepositoryBuilds(), &response, build, oidcTokenStr, nil)
+			if err != nil {
+				return nil, err
+			}
+
+			return response, err
+		},
+	}
+}
+
+func GetBuildsField(options configuration.Options) *graphql.Field {
+	return &graphql.Field{
+		Type:        buildListType,
+		Description: "Receive all builds for a repository",
+		Args: graphql.FieldConfigArgument{
+			"repository": &graphql.ArgumentConfig{
+				Type:        graphql.String,
+				Description: "Name of the Docker-Repository",
+			},
+		},
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			oidcTokenStr := auth.GetOidcTokenStrCtx(p.Context)
+
+			repository, isOK := p.Args["repository"].(string)
+			if !isOK {
+				return nil, errors.New("repository parameter is missing")
+			}
+
+			build := &handler.RepositoryBuildsRequest{
+				ParentKey: redis.RepoKey(repository),
+			}
+
+			var response []handler.Build
+			_, err := apiclient.Post(p.Context, options.BuildConfig.GetRepositoryBuilds(), &response, build, oidcTokenStr, nil)
+			if err != nil {
+				return nil, err
+			}
+
+			return response, err
+		},
+	}
+}
+
+func GetBuildsWithTagField(options configuration.Options) *graphql.Field {
+	return &graphql.Field{
+		Type:        buildListType,
+		Description: "Receive all builds for a repository and tag",
+		Args: graphql.FieldConfigArgument{
+			"repository": &graphql.ArgumentConfig{
+				Type:        graphql.String,
+				Description: "Name of the Docker-Repository",
+			},
+			"tag": &graphql.ArgumentConfig{
+				Type:        graphql.String,
+				Description: "Tag of requested builds",
+			},
+		},
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			oidcTokenStr := auth.GetOidcTokenStrCtx(p.Context)
+
+			repository, isOK := p.Args["repository"].(string)
+			if !isOK {
+				return nil, errors.New("repository parameter is missing")
+			}
+
+			tag, isOK := p.Args["tag"].(string)
+			if !isOK {
+				return nil, errors.New("tag parameter is missing")
+			}
+
+			build := &handler.RepositoryBuildsRequest{
+				ParentKey: redis.RepoTagKey(repository, tag),
 			}
 
 			var response []handler.Build

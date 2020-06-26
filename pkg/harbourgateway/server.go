@@ -19,11 +19,13 @@ func RunGatewayServer(o *configuration.Options) error {
 		graphql.ObjectConfig{
 			Name: "Query",
 			Fields: graphql.Fields{
-				"repositories":        graphql2.RepositoriesField(*o),
-				"tags":                graphql2.TagsField(*o),
-				"githubOrganizations": graphql2.GithubOrganizationsField(*o),
-				"githubRepositories":  graphql2.GithubRepositoriesField(*o),
-				"repositoryBuilds":    graphql2.GetBuildsField(*o),
+				"repositories":            graphql2.RepositoriesField(*o),
+				"tags":                    graphql2.TagsField(*o),
+				"githubOrganizations":     graphql2.GithubOrganizationsField(*o),
+				"githubRepositories":      graphql2.GithubRepositoriesField(*o),
+				"repositoryBuildsWithSCM": graphql2.GetBuildsWithSCMField(*o),
+				"repositoryBuilds":        graphql2.GetBuildsField(*o),
+				"repositoryBuildsWithTag": graphql2.GetBuildsWithTagField(*o),
 			},
 		})
 

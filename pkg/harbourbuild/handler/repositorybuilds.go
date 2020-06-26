@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"github.com/harbourrocks/harbour/pkg/harbourbuild/redis"
 	"github.com/harbourrocks/harbour/pkg/httphelper"
 	"github.com/harbourrocks/harbour/pkg/logconfig"
 	"github.com/harbourrocks/harbour/pkg/redisconfig"
@@ -10,8 +9,7 @@ import (
 )
 
 type RepositoryBuildsRequest struct {
-	SCMId      string `json:"scm_id"`
-	Repository string `json:"repository"`
+	ParentKey string `json:"parent_key"`
 }
 
 type Build struct {
@@ -20,6 +18,8 @@ type Build struct {
 	Tag         string `json:"tag"`
 	BuildStatus string `json:"build_status"`
 	Timestamp   int64  `json:"timestamp"`
+	StartTime   int64  `json:"start_time"`
+	EndTime     int64  `json:"end_time"`
 	//Logs         string `json:logs`
 	Commit string `json:"commit"`
 }
@@ -39,8 +39,7 @@ func RepositoryBuilds(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	repoKey := redis.RepoKey(repositoryBuilds.SCMId, repositoryBuilds.Repository)
-	redisRepoEntry := client.SMembers(repoKey)
+	redisRepoEntry := client.SMembers(repositoryBuilds.ParentKey)
 	if err := redisRepoEntry.Err(); err != nil {
 		log.WithError(err).Error("Failed to get repo members")
 		w.WriteHeader(http.StatusInternalServerError)
@@ -63,6 +62,16 @@ func RepositoryBuilds(w http.ResponseWriter, r *http.Request) {
 			log.WithError(err).Error("Failed to parse timestamp")
 		}
 
+		startTime, err := strconv.ParseInt(buildValue["start_time"], 10, 64)
+		if err != nil {
+			log.WithError(err).Error("Failed to parse timestamp")
+		}
+
+		endTime, err := strconv.ParseInt(buildValue["end_time"], 10, 64)
+		if err != nil {
+			log.WithError(err).Error("Failed to parse timestamp")
+		}
+
 		buildsResponse[i] = Build{
 			SCMId:       buildValue["scm_id"],
 			Repository:  buildValue["repository"],
@@ -70,7 +79,9 @@ func RepositoryBuilds(w http.ResponseWriter, r *http.Request) {
 			BuildStatus: buildValue["build_status"],
 			Timestamp:   timestamp,
 			//Logs:        buildValue["logs"],
-			Commit: buildValue["commit"],
+			Commit:    buildValue["commit"],
+			StartTime: startTime,
+			EndTime:   endTime,
 		}
 	}
 

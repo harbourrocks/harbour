@@ -73,10 +73,23 @@ func (eh EnqueueHandler) EnqueueBuild(w http.ResponseWriter, r *http.Request) {
 func createBuildEntry(ctx context.Context, request models.BuildRequest) (string, error) {
 	client := redisconfig.GetRedisClientCtx(ctx)
 
-	repoKey := redis.RepoKey(request.SCMId, request.Repository)
+	scmRepoKey := redis.ScmRepoKey(request.SCMId, request.Repository)
+	repoKey := redis.RepoKey(request.Repository)
+	repoTagKey := redis.RepoTagKey(request.Repository, request.Tag)
+
 	buildKey := redis.BuildKey(uuid.New().String())
 
 	err := client.SAdd(repoKey, buildKey).Err()
+	if err != nil {
+		return buildKey, err
+	}
+
+	err = client.SAdd(scmRepoKey, buildKey).Err()
+	if err != nil {
+		return buildKey, err
+	}
+
+	err = client.SAdd(repoTagKey, buildKey).Err()
 	if err != nil {
 		return buildKey, err
 	}
@@ -90,7 +103,9 @@ func createBuildEntry(ctx context.Context, request models.BuildRequest) (string,
 		"tag", request.Tag,
 		"dockerfile", request.Dockerfile,
 		"build_status", "Pending",
-		"timestamp", time.Now().Unix()).Err()
+		"timestamp", time.Now().Unix(),
+		"startTime", 0,
+		"endTime", 0).Err()
 
 	if err != nil {
 		return buildKey, err
