@@ -4,6 +4,8 @@ import { GithubRepositoryService } from './graphQL/githubRepository/github-repos
 import { RepositoryBuildsService } from './graphQL/repositoryBuilds/repository-builds.service';
 import { RepositoryService } from './graphQL/repositoryService/repository.service';
 import { TagService } from './graphQL/tagService/tag.service';
+import { DashboardListItem } from '../models/dashboard-list-item.model';
+import { DashboardListItemComponent } from '../components/dashboard-list-item/dashboard-list-item.component';
 
 @Injectable({
   providedIn: 'root'
@@ -37,6 +39,22 @@ export class GraphQlService {
     return this.tagService.getTags(repositoryName);
   }
 
+  async createDashboardData() {
+    const githubOrganizations = await this.getGithubOrganizations().toPromise();
+    githubOrganizations.forEach(async orga => {
+      const githubRepos = await this.getGithubRepositories(orga.login).toPromise();
+      
 
+    })
+
+
+    const item : DashboardListItem = {
+      builds: [] ,
+      images: [], // tags
+      name:"" ,
+
+    }
+
+  }
 
 }

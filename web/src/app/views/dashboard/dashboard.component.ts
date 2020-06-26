@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { GroupModel } from 'src/app/models/group.model';
 import { ListContentModel } from 'src/app/models/list-item';
-import { TagService } from 'src/app/services/graphQL/tagService/tag.service';
-import { GithubRepositoryService } from 'src/app/services/graphQL/githubRepository/github-repository.service';
+import { GraphQlService } from 'src/app/services/graphql.service';
+import { DashboardListItemComponent } from 'src/app/components/dashboard-list-item/dashboard-list-item.component';
+import { DashboardListItem } from 'src/app/models/dashboard-list-item.model';
 
 @Component({
   selector: 'app-dashboard',
@@ -10,33 +11,13 @@ import { GithubRepositoryService } from 'src/app/services/graphQL/githubReposito
   styleUrls: ['./dashboard.component.scss']
 })
 export class DashboardComponent implements OnInit {
-  public groupArr: Array<GroupModel>;
+  public models: Array<DashboardListItem>;
 
-  constructor(private githubRepository: GithubRepositoryService) {
-    this.groupArr = [
-      {
-        listItems: [
-          {
-            text: "Web Systems Frontend",
-          },
-          {
-            text: "Web Systems Backend",
-          },
-          {
-            text: "Custom Docker Registry",
-            content: new ListContentModel(DashboardComponent, ""),
-          },
-          {
-            text: "Search Controller",
-          },
-        ]
-      },
-
-    ]
+  constructor(private graphQlService: GraphQlService) {
   }
 
   ngOnInit(): void {
-    this.githubRepository.getGithubRepositories("harbourrocks").subscribe(console.log)
+    this.graphQlService.createDashboardData();
   }
 
 }
