@@ -1,10 +1,7 @@
 <div class="details">
     <div class="header">
-        <div #headerText class="header-text" 
-        *ngFor="let item of repoDetails;let i = index"
-        (mouseenter)="onMouseEnter(headerText)"
-        (mouseleave)="onMouseLeave()"
-        (click)="onClick(headerText, i)">
+        <div #headerText class="header-text" *ngFor="let item of repoDetails;let i = index"
+            (mouseenter)="onMouseEnter(headerText)" (mouseleave)="onMouseLeave()" (click)="onClick(headerText, i)">
             {{item.title}}
         </div>
     </div>

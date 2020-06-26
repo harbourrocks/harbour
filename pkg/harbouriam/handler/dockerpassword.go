@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/base64"
 	"github.com/harbourrocks/harbour/pkg/auth"
+	"github.com/harbourrocks/harbour/pkg/harbouriam/helper"
 	hRedis "github.com/harbourrocks/harbour/pkg/harbouriam/redis"
 	"github.com/harbourrocks/harbour/pkg/httphelper"
 	"github.com/harbourrocks/harbour/pkg/logconfig"
@@ -13,6 +14,11 @@ import (
 
 type DockerSetPassword struct {
 	Password string `json:"password"`
+}
+
+type DockerSetPasswordResponse struct {
+	Username    string `json:"username"`
+	PasswordSet bool   `json:"passwordSet"`
 }
 
 // DockerPassword
@@ -30,6 +36,14 @@ func DockerPassword(w http.ResponseWriter, r *http.Request) {
 	// validate password length, min 5
 	if len(model.Password) < 5 {
 		_ = httphelper.WriteErrorResponse(r, w, 1000)
+		return
+	}
+
+	// make sure user is know to iam
+	userDetails, err := helper.RefreshProfile(r.Context(), idToken)
+	if err != nil {
+		// error logged in RefreshProfile
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -53,4 +67,9 @@ func DockerPassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+	response := DockerSetPasswordResponse{
+		Username:    userDetails.PreferredUsername,
+		PasswordSet: true,
+	}
+	_ = httphelper.WriteResponse(r, w, response)
 }

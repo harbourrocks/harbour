@@ -1,4 +1,4 @@
-@import "../../../assets/colors.scss";
+@import "colors.scss";
 
 .addgroup {
     display: flex;
@@ -9,14 +9,14 @@
     &-divider {
         margin-top: 22.5px;
         height: 1px;
-        background: $color-dark-grey;
+        background: #333;
         width: 100%;
     }
 
     &-text {
         line-height: 45px;
         font-size: 25px;
-        color: $color-dark-grey;
+        color: #333;
         font-weight: bold;
         white-space: nowrap;
         cursor: pointer;

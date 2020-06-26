@@ -1,0 +1,25 @@
+@import "colors.scss";
+
+.list {
+  list-style: none;
+  padding-left: 0;
+  display: flex;
+  flex-flow: column nowrap;
+  margin-bottom: 140px;
+  margin-top: 0;
+
+  &-item {
+    text-decoration: none;
+    font-size: 24px;
+    cursor: pointer;
+    margin-bottom: 40px;
+  }
+
+  &-underscore {
+    height: 50px;
+    background: $color-primary;
+    width: 1px;
+    position: absolute;
+    transition: all 0.35s;
+  }
+}

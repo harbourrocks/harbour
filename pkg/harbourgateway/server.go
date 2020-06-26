@@ -35,6 +35,7 @@ func RunGatewayServer(o *configuration.Options) error {
 			Fields: graphql.Fields{
 				"enqueueBuild":        graphql2.EnqueueBuildField(*o),
 				"manuallyRegisterApp": graphql2.GithubRegisterAppField(*o),
+				"setRegistryPassword": graphql2.SetDockerPasswordField(*o),
 			},
 		})
 

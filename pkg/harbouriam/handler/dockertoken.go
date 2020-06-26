@@ -265,6 +265,7 @@ func authenticateViaBasic(r *http.Request) (dockerUsername string, err error) {
 	if err != nil {
 		return // error logged in resolveUserIdFromUsername
 	} else if userId == "" {
+		log.Warn("This user might be unknown to the system")
 		dockerUsername = ""
 		return
 	}

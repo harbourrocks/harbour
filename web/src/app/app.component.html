@@ -1,8 +1,10 @@
 <div class="app">
-  <div class="flex-wrapper">
-    <app-navbar class="navbar"></app-navbar>
-    <div class="container">
-      <router-outlet></router-outlet>
+  <h1 class="hb-header-1 app-header">Harbour</h1>
+  <div class="app-wrapper">
+    <div class="app-wrapper--navbar">
+      <app-navbar></app-navbar>
+      <app-router-icon [icon]="settingRouteConfig.icon" [routerLink]="settingRouteConfig.route"></app-router-icon>
     </div>
+    <router-outlet></router-outlet>
   </div>
 </div>

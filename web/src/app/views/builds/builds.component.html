@@ -1,0 +1,25 @@
+<div class="builds">
+    <app-vertical-navbar class="builds-navigation" [labels]="navigationLabels"
+        (navigationChange)="pageChange($event)"></app-vertical-navbar>
+
+
+    <ng-container *ngIf="currentPageIndex === 0">
+        <div class="builds-header">
+            <div class="hb-header-2">{{navigationLabels[0]}}</div>
+        </div>
+        <app-simple-list [listItems]="imageList"></app-simple-list>
+    </ng-container>
+
+
+    <ng-container *ngIf="currentPageIndex === 1">
+        <div class="builds-header">
+            <div class="hb-header-2">{{navigationLabels[1]}}</div>
+            <app-button class="builds-btn" [label]="'+ Manual Build'"></app-button>
+        </div>
+        <div class="builds-body">
+            <div class="builds-label">Commandoline Password:</div>
+            <input type="text" class="hb-input builds-input">
+        </div>
+    </ng-container>
+
+</div>

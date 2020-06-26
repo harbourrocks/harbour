@@ -1,0 +1,9 @@
+<div class="navbar">
+    <ul class="list">
+        <li #listItem *ngFor="let item of labels;let i = index" class="list-item"
+        (mouseenter)="onMouseEnter(listItem)" (mouseleave)="onMouseLeave()" (click)="onClick(listItem, i)">
+            {{item}}
+        </li>
+    </ul>
+    <div #underscore class="list-underscore"></div>
+</div>

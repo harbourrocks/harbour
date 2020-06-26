@@ -1,4 +1,21 @@
-<div class="repository">
-    <app-groups class="group" *ngFor="let group of groupArr" [groupData]="group"></app-groups>
-    <app-addgroup></app-addgroup>
-</div> 
+<div class="settings">
+    <app-vertical-navbar class="settings-navigation" [labels]="navigationLabels"
+        (navigationChange)="pageChange($event)"></app-vertical-navbar>
+    <ng-container *ngIf="currentPageIndex === 0">
+        <div class="settings-header">
+            <div class="hb-header-2">{{navigationLabels[0]}}</div>
+            <app-button class="settings-btn" [label]="'+ GitHub'"></app-button>
+            <app-button class="settings-btn" [label]="'+ GitLab'"></app-button>
+        </div>
+        <app-simple-list [listItems]="listItems | async"></app-simple-list>
+    </ng-container>
+    <ng-container *ngIf="currentPageIndex === 1">
+        <div class="settings-header">
+            <div class="hb-header-2">{{navigationLabels[1]}}</div>
+        </div>
+        <div class="settings-body">
+            <div class="settings__password-label">Commandoline Password:</div>
+            <input type="text" class="hb-input settings__password-input">
+        </div>
+    </ng-container>
+</div>

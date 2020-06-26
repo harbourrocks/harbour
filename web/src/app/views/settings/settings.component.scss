@@ -1,0 +1,34 @@
+.settings {
+  position: relative;
+
+  &-header {
+    display: flex;
+    flex-flow: row nowrap;
+    margin-bottom: 50px;
+  }
+
+  &-btn {
+    margin-left: 35px;
+  }
+
+  &-navigation {
+    position: absolute;
+    left: -300px;
+    top: 60px;
+  }
+
+  &-body {
+    display: flex;
+    flex-flow: row nowrap;
+  }
+
+  &__password {
+    &-label {
+      font-size: 24px;
+    }
+    &-input {
+      width: 300px;
+      margin-left: 66px;
+    }
+  }
+}
