@@ -18,6 +18,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 type Builder struct {
@@ -56,14 +57,18 @@ func (b Builder) buildImage(job models.BuildJob) {
 	b.log = logrus.WithField("reqId", job.ReqId)
 	redisClient := redisconfig.OpenClient(b.redisOptions)
 
-	if err := redisClient.HSet(job.BuildKey, "build_status", "Running").Err(); err != nil {
+	if err := redisClient.HSet(job.BuildKey,
+		"build_status", "Running",
+		"start_time", time.Now().Unix()).Err(); err != nil {
 		b.log.WithError(err).Error("Failed to save data to redis")
 		return
 	}
 
 	buildCtx, err := b.createBuildContext(job.FilePath, job.Dockerfile)
 	if err != nil {
-		if err := redisClient.HSet(job.BuildKey, "build_status", "Failed").Err(); err != nil {
+		if err := redisClient.HSet(job.BuildKey,
+			"build_status", "Failed",
+			"end_time", time.Now().Unix()).Err(); err != nil {
 			b.log.WithError(err).Error("Failed to create build context")
 			return
 		}
@@ -81,7 +86,8 @@ func (b Builder) buildImage(job models.BuildJob) {
 	if err != nil {
 		b.cleanup(buildCtx, job)
 		b.log.WithError(err).Error("Error while building image")
-		if err := redisClient.HSet(job.BuildKey, "build_status", "Failed").Err(); err != nil {
+		if err := redisClient.HSet(job.BuildKey, "build_status", "Failed",
+			"end_time", time.Now().Unix()).Err(); err != nil {
 			b.log.WithError(err).Error("Failed to build image")
 			return
 		}
@@ -105,14 +111,17 @@ func (b Builder) buildImage(job models.BuildJob) {
 	logs := buf.String()
 	if strings.Contains(logs, "errorDetail") {
 		b.log.Errorf("Build failed: %s", logs)
-		if err := redisClient.HSet(job.BuildKey, "build_status", "Failed", "logs", logs).Err(); err != nil {
+		if err := redisClient.HSet(job.BuildKey, "build_status", "Failed", "logs", logs,
+			"end_time", time.Now().Unix()).Err(); err != nil {
 			b.log.WithError(err).Error("Failed to save data to redis")
 			return
 		}
 		return
 	}
 
-	if err := redisClient.HSet(job.BuildKey, "build_status", "Success", "logs", logs).Err(); err != nil {
+	if err := redisClient.HSet(job.BuildKey, "build_status", "Success",
+		"logs", logs,
+		"end_time", time.Now().Unix()).Err(); err != nil {
 		b.log.WithError(err).Error("Failed to save data to redis")
 		return
 	}
@@ -121,7 +130,9 @@ func (b Builder) buildImage(job models.BuildJob) {
 	imageString := b.getImageString(job.RegistryUrl, job.Repository, job.Tag)
 
 	if err = b.pushImage(imageString, job.RegistryToken); err != nil {
-		if err := redisClient.HSet(job.BuildKey, "build_status", "Failed", "logs", "Pushing to repository failed").Err(); err != nil {
+		if err := redisClient.HSet(job.BuildKey, "build_status", "Failed",
+			"logs", "Pushing to repository failed",
+			"end_time", time.Now().Unix()).Err(); err != nil {
 			b.log.WithError(err).Error("Error while pushing image to registry")
 			return
 		}

@@ -118,7 +118,7 @@ var buildType = graphql.NewObject(
 			"commit": &graphql.Field{
 				Type: graphql.String,
 			},
-			"timeStamp": &graphql.Field{
+			"timestamp": &graphql.Field{
 				Type: graphql.Int,
 			},
 			"startTime": &graphql.Field{

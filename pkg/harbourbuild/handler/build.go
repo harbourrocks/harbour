@@ -15,6 +15,7 @@ import (
 	"github.com/harbourrocks/harbour/pkg/redisconfig"
 	registryModels "github.com/harbourrocks/harbour/pkg/registry/models"
 	"net/http"
+	"time"
 )
 
 type BuildHandler struct {
@@ -35,7 +36,8 @@ func (b BuildHandler) Build(w http.ResponseWriter, r *http.Request) {
 	var checkoutResponse worker.CheckoutCompletedModel
 	if err := httphelper.ReadRequest(r, w, &checkoutResponse); err != nil {
 		log.WithError(err).Error("Failed to parse build request")
-		if err := client.HSet(buildKey, "build_status", "Failed").Err(); err != nil {
+		if err := client.HSet(buildKey,
+			"build_status", "Failed").Err(); err != nil {
 			log.WithError(err).Error("Failed to save build data")
 			return
 		}
@@ -44,7 +46,8 @@ func (b BuildHandler) Build(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if checkoutResponse.Success != true {
-		if err := client.HSet(buildKey, "build_status", "Failed").Err(); err != nil {
+		if err := client.HSet(buildKey, "build_status", "Failed",
+			"start_time", time.Now().Unix(), "end_time", time.Now().Unix()).Err(); err != nil {
 			log.WithError(err).Error("Failed to save build data")
 			return
 		}
@@ -52,7 +55,8 @@ func (b BuildHandler) Build(w http.ResponseWriter, r *http.Request) {
 
 	redisBuildEntry := client.HGetAll(buildKey)
 	if err := redisBuildEntry.Err(); err != redis.Nil && err != nil {
-		if err := client.HSet(buildKey, "build_status", "Failed").Err(); err != nil {
+		if err := client.HSet(buildKey, "build_status", "Failed",
+			"start_time", time.Now().Unix(), "end_time", time.Now().Unix()).Err(); err != nil {
 			log.WithError(err).Error("Failed to save build data")
 			return
 		}
@@ -67,7 +71,8 @@ func (b BuildHandler) Build(w http.ResponseWriter, r *http.Request) {
 
 	registryToken, err := fetchRegistryToken(ctx, repository, b.config)
 	if err != nil {
-		if err := client.HSet(buildKey, "build_status", "Failed").Err(); err != nil {
+		if err := client.HSet(buildKey, "build_status", "Failed",
+			"start_time", time.Now().Unix(), "end_time", time.Now().Unix()).Err(); err != nil {
 			log.WithError(err).Error("Failed to save build data")
 			return
 		}
