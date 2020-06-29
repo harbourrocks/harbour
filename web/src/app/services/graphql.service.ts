@@ -27,8 +27,12 @@ export class GraphQlService {
     return this.githubRepositoryService.getGithubRepositories(login);
   }
   
-  getRepositoryBuilds(scmdId: string, repositoryName: string) {
-    return this.repositoryBuildsService.getRepositoryBuilds(scmdId,repositoryName);
+  getRepositoryBuildsWithScmId(scmdId: string, repositoryName: string) {
+    return this.repositoryBuildsService.getRepositoryBuildsWithScmId(scmdId,repositoryName);
+  }
+
+  getRepositoryBuilds(repositoryName: string) {
+    return this.repositoryBuildsService.getRepositoryBuilds(repositoryName);
   }
 
   getRepositories() {

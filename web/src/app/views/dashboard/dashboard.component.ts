@@ -1,10 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { GroupModel } from 'src/app/models/group.model';
-import { ListContentModel } from 'src/app/models/list-item';
 import { GraphQlService } from 'src/app/services/graphql.service';
-import { DashboardListItemComponent } from 'src/app/components/dashboard-list-item/dashboard-list-item.component';
 import { DashboardListItem } from 'src/app/models/dashboard-list-item.model';
-import { BuildStatus } from 'src/app/models/graphql-models/repository-build.model';
+import { BuildStatus } from 'src/app/models/build-status.enum';
 
 @Component({
   selector: 'app-dashboard',

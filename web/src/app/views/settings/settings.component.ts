@@ -1,6 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { GroupModel } from 'src/app/models/group.model';
-import { faGithub, faGitlab } from '@fortawesome/free-brands-svg-icons';
 import { GraphQlService } from 'src/app/services/graphql.service';
 import { map, flatMap } from 'rxjs/operators';
 import { SimpleListItem } from 'src/app/models/simple-list-item.model';

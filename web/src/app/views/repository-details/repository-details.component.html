@@ -1,0 +1,24 @@
+<div class="builds">
+    <app-vertical-navbar class="builds-navigation" [labels]="navigationLabels"
+        (navigationChange)="pageChange($event)"></app-vertical-navbar>
+
+
+    <ng-container *ngIf="currentPageIndex === 0">
+        <div class="builds-header">
+            <div class="hb-header-2">{{repositoryName}}</div>
+        </div>
+        <app-simple-list [listItems]="tags | async"></app-simple-list>
+    </ng-container>
+
+
+    <ng-container *ngIf="currentPageIndex === 1">
+        <div class="builds-header">
+            <div class="hb-header-2">{{repositoryName}}</div>
+            <app-button class="builds-btn" [label]="'+ Manual Build'" [routerLink]="'/manual-build'"></app-button>
+        </div>
+        <div class="builds-body">
+            <app-list [listModel]="builds |async"></app-list>
+        </div>
+    </ng-container>
+
+</div>

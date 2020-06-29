@@ -1,7 +1,3 @@
-<div #expandable class="list" (click)="gotoDetails()" [style.cursor]="listData.details?'pointer':'default'">
-    <div #colorblock class="list-colorblock" [class.list-colorblock--small]="groupHovered || isHovered || groupSmallColorBlock"></div>
-    <div class="list-text" [class.list-text--open]="isHovered">
-        {{listData.text}}
-        <ng-template list-host></ng-template>
-    </div>
+<div class="list">
+    <app-list-item *ngFor="let item of listModel?.listItems" [listItem]="item" (onClick)="onClick($event)"></app-list-item>
 </div>

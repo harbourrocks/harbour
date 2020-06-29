@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { GroupModel } from 'src/app/models/group.model';
-import { faShip } from '@fortawesome/free-solid-svg-icons';
+import { GraphQlService } from 'src/app/services/graphql.service';
+import { map } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { List } from 'src/app/models/list.model';
 import { Router } from '@angular/router';
 
 @Component({
@@ -9,46 +11,22 @@ import { Router } from '@angular/router';
   styleUrls: ['./repository.component.scss']
 })
 export class RepositoryComponent implements OnInit {
-  public groupArr: Array<GroupModel>;
+  public listModel: Observable<List>;
 
-  constructor() {
-    this.groupArr = [
-      {
-        smallColorbox: true,
-        title: "Harbour",
-        icon: faShip,
-        collapsable: true,
-        listItems: [
-          {
-            text: "harbour-scm",
-          },
-          {
-            text: "harbour-build",
-          },
-          {
-            text: "harbour-iam",
-            details: [{title:"properties", group: {listItems: [{text: "lol"}]}}],
-          },
-        ]
-      },
-      {
-        smallColorbox: true,
-        title: "Sample Project",
-        icon: faShip,
-        collapsable: true,
-        listItems: [
-          {
-            text: "sample-frontend",
-          },
-          {
-            text: "sample-backend",
-          }
-        ]
-      },
-
-    ]
-  }
+  constructor(private graphQlService: GraphQlService, private router: Router) { }
 
   ngOnInit(): void {
+    this.listModel = this.graphQlService.getRepositories()
+      .pipe(
+        map(repos => ({
+          listItems: repos
+            .map(repo => ({ label: repo.name, clickable: true })
+            ),
+          clickHandler: (listItem) => this.router.navigate(['/repository', listItem.label]),
+
+        }
+        )
+        ))
   }
+
 }

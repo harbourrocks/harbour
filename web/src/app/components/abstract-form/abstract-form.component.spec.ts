@@ -1,20 +1,20 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { AddgroupComponent } from './addgroup.component';
+import { AbstractFormComponent } from './abstract-form.component';
 
-describe('AddgroupComponent', () => {
-  let component: AddgroupComponent;
-  let fixture: ComponentFixture<AddgroupComponent>;
+describe('AbstractFormComponent', () => {
+  let component: AbstractFormComponent;
+  let fixture: ComponentFixture<AbstractFormComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ AddgroupComponent ]
+      declarations: [ AbstractFormComponent ]
     })
     .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(AddgroupComponent);
+    fixture = TestBed.createComponent(AbstractFormComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

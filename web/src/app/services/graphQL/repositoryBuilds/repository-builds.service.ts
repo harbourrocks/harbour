@@ -12,10 +12,10 @@ export class RepositoryBuildsService {
 
   constructor(private apollo: Apollo) { }
 
-  getRepositoryBuilds(scmdId: string, repositoryName: string) {
+  getRepositoryBuildsWithScmId(scmdId: string, repositoryName: string) {
     return this.apollo.query({
       query: gql`
-      query getRepositoryBuild($scmId: string,$repository: String){
+      query getRepositoryBuildsWithScmId($scmId: String,$repository: String){
         repositoryBuilds(scmId: $scmdId,  repository: $repository)
         {
           buildStatus,
@@ -24,8 +24,28 @@ export class RepositoryBuildsService {
         }
       }
       `,
-      variables: { scmId: scmdId, repository: repositoryName},
+      variables: { scmId: scmdId, repository: repositoryName },
 
+    })
+      .pipe(map((result: ApolloQueryResult<{ repositoryBuilds: Array<RepositoryBuild> }>) => result.data.repositoryBuilds))
+  }
+
+  getRepositoryBuilds(repository: string) {
+    return this.apollo.query({
+      query: gql`
+      query getRepositoryBuilds($repository: String){
+        repositoryBuilds(repository: $repository){
+          buildStatus
+          commit
+          endTime
+          repository
+          scmId
+          startTime
+          tag
+          timestamp
+        }
+      }`,
+      variables: { repository: repository },
     })
       .pipe(map((result: ApolloQueryResult<{ repositoryBuilds: Array<RepositoryBuild> }>) => result.data.repositoryBuilds))
   }
