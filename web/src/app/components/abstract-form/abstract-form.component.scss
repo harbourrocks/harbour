@@ -1,0 +1,21 @@
+.form {
+    width: 530px;
+
+
+    &-items {
+        margin-top: 80px;
+        display: flex;
+        flex-flow: column nowrap;
+        >* {
+            margin-bottom: 15px;
+        }
+    }
+
+
+    &-button-wrapper {
+        display: flex;
+        flex-flow: row nowrap;
+        justify-content: space-between;
+
+    }
+}

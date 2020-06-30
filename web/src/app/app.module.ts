@@ -22,6 +22,7 @@ import { RepositoryDetailsComponent } from './views/repository-details/repositor
 import { AbstractFormComponent } from './components/abstract-form/abstract-form.component';
 import { ManualBuildComponent } from './views/manual-build/manual-build.component';
 import { AddAccountComponent } from './views/add-account/add-account.component';
+import { ReactiveFormsModule } from '@angular/forms';
 
 @NgModule({
   declarations: [
@@ -48,7 +49,8 @@ import { AddAccountComponent } from './views/add-account/add-account.component';
     AppRoutingModule,
     FontAwesomeModule,
     GraphQLModule,
-    HttpClientModule
+    HttpClientModule,
+    ReactiveFormsModule
   ],
   providers: [],
   bootstrap: [AppComponent]

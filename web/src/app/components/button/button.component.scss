@@ -18,4 +18,9 @@
     white-space: nowrap;
     pointer-events: none;
   }
+
+  &--disabled {
+    background-color: $color-stroke;
+    cursor: initial;
+  }
 }

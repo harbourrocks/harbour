@@ -21,10 +21,37 @@
   padding-left: 30px;
   height: 54px;
   transform: translateY(-27px);
+  position: relative;
+  background: $color-white;
 
   &::placeholder {
     font-size: 18px;
     line-height: 22px;
     color: $color-leightGrey;
   }
+
+  &--selectable {
+    padding: 4px;
+
+    padding-left: 30px;
+    padding-right: 30px;
+    height: 64px;
+    font-size: 18px;
+    line-height: 22px;
+    color: $color-leightGrey;
+    text-align: left;
+    &:hover {
+      cursor: pointer;
+    }
+  }
+
+  &--selected {
+    color: $color-font;
+  }
+
+  &.ng-touched.ng-invalid{
+    border-color: $color-secondary;
+    border-width: 2px;
+  }
 }
+
