@@ -8,6 +8,7 @@ import { BuildsComponent } from './views/builds/builds.component';
 import { RepositoryComponent } from './views/repository/repository.component';
 import { RepositoryDetailsComponent } from './views/repository-details/repository-details.component';
 import { ManualBuildComponent } from './views/manual-build/manual-build.component';
+import { AddAccountComponent } from './views/add-account/add-account.component';
 
 
 const routes: Routes = [
@@ -17,7 +18,7 @@ const routes: Routes = [
   { path: 'settings', component: SettingsComponent, canActivate: [AuthGuard] },
   { path: 'builds', component: BuildsComponent, canActivate: [AuthGuard] },
   { path: 'manual-build', component: ManualBuildComponent, canActivate: [AuthGuard] },
-  { path: 'add-account', component: ManualBuildComponent, canActivate: [AuthGuard] },
+  { path: 'add-account/:acc_prov', component: AddAccountComponent, canActivate: [AuthGuard] },
   { path: 'auth/oidc/callback', component: DashboardComponent, canActivate: [OidcCallbackGuard] },
   { path: '**', redirectTo: 'dashboard' },
 ];
