@@ -1,5 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { SimpleListItem } from 'src/app/models/simple-list-item.model';
+import { GraphQlService } from 'src/app/services/graphql.service';
+import { Observable } from 'rxjs';
+import { List } from 'src/app/models/list.model';
+import { map, mergeAll } from 'rxjs/operators';
+import { ListItem } from 'src/app/models/list-item.model';
 
 @Component({
   selector: 'app-builds',
@@ -7,22 +12,30 @@ import { SimpleListItem } from 'src/app/models/simple-list-item.model';
   styleUrls: ['./builds.component.scss']
 })
 export class BuildsComponent implements OnInit {
-  navigationLabels = ["Images","Builds"];
+  // builds: Array<>;
 
-  imageList: SimpleListItem[] = [
-    {label: "latest", afterLabel: "2.0.0"},
-    {label: "latest", afterLabel: "2.0.0"},
-    {label: "latest", afterLabel: "2.0.0"},
-  ]
+  constructor(private graphQlService: GraphQlService) { }
 
-  currentPageIndex = 0;
+  async ngOnInit(): Promise<void> {
 
-  constructor() { }
+    // const repos = await this.graphQlService.getRepositories().toPromise()
 
-  ngOnInit(): void {
-  }
-  pageChange(newIndex) {
-    this.currentPageIndex = newIndex;
+    // const obs = repos.map(repo =>
+    //   this.graphQlService.getRepositoryBuilds(repo.name).pipe(map(builds =>
+    //     builds.map(
+    //       build => ({
+    //         label: `${build.repository}:${build.tag}`,
+    //         preLabel: `#${build.commit}`,
+    //         sufLabel: build.endTime + "",
+    //         status: build.buildStatus
+    //       })
+    //     )
+    //   ))
+    // )
+
+    // obs.forEach(arr => arr.subscribe(console.log))
+
+    
   }
 
 }
