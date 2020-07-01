@@ -42,11 +42,13 @@ func DockerToken(w http.ResponseWriter, r *http.Request) {
 	idToken := auth.GetIdTokenReq(r)
 
 	// make sure user is know to iam
-	_, err := helper.RefreshProfile(r.Context(), idToken)
-	if err != nil {
-		// error logged in RefreshProfile
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+	if idToken != nil {
+		_, err := helper.RefreshProfile(r.Context(), idToken)
+		if err != nil {
+			// error logged in RefreshProfile
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 	}
 
 	qAccount := httphelper.GetQueryParam(r, "account")
