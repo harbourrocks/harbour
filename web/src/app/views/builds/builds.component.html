@@ -1,4 +1,7 @@
 <div class="builds">
-    <div class="hb-header-2">Builds</div>
+    <div class="builds-header">
+        <div class="hb-header-2 builds-header">Builds</div>
+        <app-button class="builds-btn" [label]="'+ Manual Build'" [routerLink]="'/manual-build'"></app-button>
+    </div>
     <app-list [listModel]="builds |async"></app-list>
 </div>

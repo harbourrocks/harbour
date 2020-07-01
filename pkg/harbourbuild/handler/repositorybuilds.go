@@ -13,6 +13,7 @@ type RepositoryBuildsRequest struct {
 }
 
 type Build struct {
+	BuildId     string `json:build_id`
 	SCMId       string `json:"scm_id"`
 	Repository  string `json:"repository"`
 	Tag         string `json:"tag"`
@@ -73,6 +74,7 @@ func RepositoryBuilds(w http.ResponseWriter, r *http.Request) {
 		}
 
 		buildsResponse[i] = Build{
+			BuildId:     buildKey,
 			SCMId:       buildValue["scm_id"],
 			Repository:  buildValue["repository"],
 			Tag:         buildValue["tag"],

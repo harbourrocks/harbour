@@ -15,14 +15,14 @@ export class BuildsComponent implements OnInit {
 
   constructor(private graphQlService: GraphQlService) { }
 
-  async ngOnInit(): Promise<void> {
+  ngOnInit(): void {
     this.builds = this.graphQlService.getAllBuilds()
       .pipe(map(builds =>
         ({
           listItems: builds.map(build => ({
             label: `${build.repository}:${build.tag}`,
             preLabel: `#${build.commit}`,
-            sufLabel: build.endTime + "",
+            sufLabel: new Date(1593611348 * 1000).toISOString().substring(0, 10),
             color: BuildStatus[build.buildStatus]
 
           }))

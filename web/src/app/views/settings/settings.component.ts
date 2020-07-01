@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { GraphQlService } from 'src/app/services/graphql.service';
-import { map, flatMap } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { SimpleListItem } from 'src/app/models/simple-list-item.model';
 import { Observable } from 'rxjs';
 
@@ -10,6 +10,9 @@ import { Observable } from 'rxjs';
   styleUrls: ['./settings.component.scss']
 })
 export class SettingsComponent implements OnInit {
+  
+  @ViewChild('passwordInput') passwordInput: ElementRef;
+
   navigationLabels = ["Accounts", "Passwords"];
   listItems: Observable<SimpleListItem[]>;
 
@@ -26,6 +29,11 @@ export class SettingsComponent implements OnInit {
 
   pageChange(newPageIndex: number) {
     this.currentPageIndex = newPageIndex;
+  }
+  passwordSet(){
+    const value = this.passwordInput.nativeElement.value;
+    if(value.length === 0) return;
+    this.graphQlService.setPassword(value)
   }
 
 }

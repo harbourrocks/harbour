@@ -8,6 +8,7 @@
   border: 1px solid $color-stroke;
   padding-left: 50px;
   padding-right: 63px;
+  margin-bottom: 30px;
 
   font-size: 24px;
   line-height: 75px;
@@ -18,14 +19,22 @@
     width: 17px;
     height: 75px;
     left: 0px;
-}
+  }
 
-&-prelabel {
-    width: 240px;
-}
-&-suflabel{
+  // HACKY FOR PRESENTATION
+  &-prelabel {
+    margin-right: 100px;
+    margin-top: 7px;
+    width: 230px;
+    font-size: 80%;
+
+    line-height: 30px;
+
+    overflow-wrap: break-word;
+  }
+  &-suflabel {
     margin-left: auto;
-};
+  }
 
   &--clickable {
     cursor: pointer;
