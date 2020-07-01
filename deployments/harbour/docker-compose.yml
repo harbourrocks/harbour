@@ -116,7 +116,7 @@ services:
       - oidc.env
     environment:
       GRAPH_QL_URL: https://harbour.rocks/graphql
-      UI_ROOT: https://harbor.rocks
+      UI_ROOT: https://harbour.rocks
 
 networks:
   redis:
