@@ -9,6 +9,7 @@ import (
 	"github.com/harbourrocks/harbour/pkg/auth"
 	"github.com/harbourrocks/harbour/pkg/cryptography"
 	"github.com/harbourrocks/harbour/pkg/harbouriam/configuration"
+	"github.com/harbourrocks/harbour/pkg/harbouriam/helper"
 	hRedis "github.com/harbourrocks/harbour/pkg/harbouriam/redis"
 	"github.com/harbourrocks/harbour/pkg/httphelper"
 	"github.com/harbourrocks/harbour/pkg/logconfig"
@@ -38,6 +39,15 @@ func DockerToken(w http.ResponseWriter, r *http.Request) {
 	log := logconfig.GetLogReq(r)
 	iamConfig := configuration.GetIAMConfigReq(r)
 	dockerConfig := iamConfig.Docker
+	idToken := auth.GetIdTokenReq(r)
+
+	// make sure user is know to iam
+	_, err := helper.RefreshProfile(r.Context(), idToken)
+	if err != nil {
+		// error logged in RefreshProfile
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 	qAccount := httphelper.GetQueryParam(r, "account")
 	qClientId := httphelper.GetQueryParam(r, "client_id")
