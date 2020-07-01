@@ -1,6 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { FormModel } from 'src/app/models/form.model';
-import {Location} from '@angular/common';
+import { Location } from '@angular/common';
+import { EnqueueBuild } from 'src/app/models/graphql-models/enqueue-build.model';
+import { GraphQlService } from 'src/app/services/graphql.service';
+import { GithubRpositories } from 'src/app/models/graphql-models/github-repositories.model';
+import { of } from 'rxjs';
 
 @Component({
   selector: 'app-manual-build',
@@ -8,29 +12,35 @@ import {Location} from '@angular/common';
   styleUrls: ['./manual-build.component.scss']
 })
 export class ManualBuildComponent implements OnInit {
+  githubRepositories: Array<GithubRpositories> = [];
 
   public formModel: FormModel = {
     header: "Manual Build",
     items: [
-      {name: "scm", placeholder: "Source Control Repo", selections:["1", "2"]},
-      {name: "commit", placeholder: "Commit Hash"},
-      {name: "dockerPath", placeholder: "Dockerfile Path"},
-      {name: "repository", placeholder: "Repository", selections: ["1", "2"]},
-      {name: "tag", placeholder: "Image Tag"},
+      { name: "scmId", placeholder: "Source Control Repo", selections: [] },
+      { name: "commit", placeholder: "Commit Hash" },
+      { name: "dockerfile", placeholder: "Dockerfile Path" },
+      { name: "repository", placeholder: "Repository", selections: [] },
+      { name: "tag", placeholder: "Image Tag" },
     ],
   }
 
-  constructor(private _location: Location) { }
+  constructor(private _location: Location, private graphQlService: GraphQlService) { }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
+    this.graphQlService.getRepositories()
+      .subscribe(repos => this.formModel.items[3].selections = repos.map(repo => repo.name));
+    this.githubRepositories = await this.graphQlService.getAllGithubRepositories().toPromise();
+    this.formModel.items[0].selections = this.githubRepositories.map(repo => repo.name);
+
   }
 
   onCancel() {
     this._location.back();
   }
 
-  onSubmit() {
-    //CALL
+  onSubmit(data: EnqueueBuild) {
+    this.graphQlService.enqueueBuild(data).subscribe(console.log);
 
     this._location.back();
   }

@@ -2,6 +2,8 @@ import { Component, OnInit, Input } from '@angular/core';
 import { FormModel } from 'src/app/models/form.model';
 import {Location} from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
+import { RegisterApp } from 'src/app/models/graphql-models/register-app.model';
+import { GraphQlService } from 'src/app/services/graphql.service';
 
 @Component({
   selector: 'app-add-account',
@@ -12,7 +14,7 @@ export class AddAccountComponent implements OnInit {
 
   public formModel: FormModel;
 
-  constructor(private _location: Location, private route: ActivatedRoute,) { 
+  constructor(private _location: Location, private route: ActivatedRoute,private graphQlService: GraphQlService) { 
     
   }
   
@@ -35,9 +37,9 @@ export class AddAccountComponent implements OnInit {
     this._location.back();
   }
 
-  onSubmit() {
-    //CALL
-
+  onSubmit(data: RegisterApp) {
+    this.graphQlService.addGithubAccount(data);
+    
     this._location.back();
   }
 }

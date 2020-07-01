@@ -6,6 +6,12 @@ import { RepositoryService } from './graphQL/repositoryService/repository.servic
 import { TagService } from './graphQL/tagService/tag.service';
 import { DashboardListItem } from '../models/dashboard-list-item.model';
 import { DashboardListItemComponent } from '../components/dashboard-list-item/dashboard-list-item.component';
+import { mergeMap, flatMap, map, mergeAll } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { GithubRpositories } from '../models/graphql-models/github-repositories.model';
+import { EnqueueBuild, EnqueueBuildReturn } from '../models/graphql-models/enqueue-build.model';
+import { RegisterApp } from '../models/graphql-models/register-app.model';
+import { RegisterAppService } from './graphQL/registerApp/register-app.service';
 
 @Injectable({
   providedIn: 'root'
@@ -17,7 +23,8 @@ export class GraphQlService {
     private repositoryBuildsService: RepositoryBuildsService,
     private repositoryService: RepositoryService,
     private tagService: TagService,
-    ) { }
+    private registerAppService: RegisterAppService
+  ) { }
 
   getGithubOrganizations() {
     return this.githubOrganizationService.getGithubOrganizations();
@@ -26,9 +33,9 @@ export class GraphQlService {
   getGithubRepositories(login: string) {
     return this.githubRepositoryService.getGithubRepositories(login);
   }
-  
+
   getRepositoryBuildsWithScmId(scmdId: string, repositoryName: string) {
-    return this.repositoryBuildsService.getRepositoryBuildsWithScmId(scmdId,repositoryName);
+    return this.repositoryBuildsService.getRepositoryBuildsWithScmId(scmdId, repositoryName);
   }
 
   getRepositoryBuilds(repositoryName: string) {
@@ -47,18 +54,33 @@ export class GraphQlService {
     const githubOrganizations = await this.getGithubOrganizations().toPromise();
     githubOrganizations.forEach(async orga => {
       const githubRepos = await this.getGithubRepositories(orga.login).toPromise();
-      
+
 
     })
 
 
-    const item : DashboardListItem = {
-      builds: [] ,
+    const item: DashboardListItem = {
+      builds: [],
       images: [], // tags
-      name:"" ,
+      name: "",
 
     }
 
+  }
+
+  getAllGithubRepositories(): Observable<Array<GithubRpositories>> {
+    return this.getGithubOrganizations().pipe(
+      mergeMap(orgas => orgas.map(orga => this.getGithubRepositories(orga.login))),
+      mergeAll(1)
+    )
+  }
+
+  addGithubAccount(data: RegisterApp): Observable<string> {
+    return this.registerAppService.registerApp(data);
+  }
+
+  enqueueBuild(enqueueData : EnqueueBuild): Observable<EnqueueBuildReturn> {
+    return this.repositoryBuildsService.enqueueBuild(enqueueData)
   }
 
 }

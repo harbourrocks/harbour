@@ -20,12 +20,12 @@ export class AbstractFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    let smth = {};
+    let formatData = {};
     this.formModel.items.forEach(item => {
-        smth[item.name] = [null, Validators.required]
+      formatData[item.name] = [null, Validators.required]
     })
 
-    this.formBuild = this.fb.group(smth)
+    this.formBuild = this.fb.group(formatData)
   }
 
   selectField(name: string) {
