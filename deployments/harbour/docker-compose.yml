@@ -114,11 +114,11 @@ services:
     image: harbour-web
     ports:
       - 8080:80
-    env_file:
-      - oidc.env
     environment:
       GRAPH_QL_URL: https://api.harbour.rocks/graphql
       UI_ROOT: https://harbour.rocks
+      OIDC_CLIENT_ID: d8dfd041-5a71-465d-8d15-7d2b91c0b1ba
+      OIDC_DISCOVERY_URL: https://login.microsoftonline.com/07a987a0-3eef-42a9-a7d6-53698899fcf2/v2.0/.well-known/openid-configuration
 
 networks:
   redis:
