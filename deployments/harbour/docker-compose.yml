@@ -17,9 +17,9 @@ services:
       - 5000:5000
     environment:
       REGISTRY_AUTH_TOKEN_AUTOREDIRECT: "false"
-      REGISTRY_AUTH_TOKEN_REALM: http://harbour-iam:5100/docker/auth/token
+      REGISTRY_AUTH_TOKEN_REALM: https://iam.harbour.rocks/docker/auth/token
       REGISTRY_AUTH_TOKEN_SERVICE: https://io.harbour.rocks
-      REGISTRY_AUTH_TOKEN_ISSUER: https://io.harbour.rocks
+      REGISTRY_AUTH_TOKEN_ISSUER: https://iam.harbour.rocks
       REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE: /registry-auth.crt
     volumes:
       - ./registry-auth.crt:/registry-auth.crt
@@ -39,7 +39,7 @@ services:
       LOG_LEVEL: trace
       DOCKER_TOKEN_SIGNING_KEY: /registry-auth.key
       DOCKER_TOKEN_CERTIFICATE: /registry-auth.crt
-      DOCKER_TOKEN_ISSUER: https://io.harbour.rocks
+      DOCKER_TOKEN_ISSUER: https://iam.harbour.rocks
       DOCKER_TOKEN_LIFETIME: 3600s
     volumes:
       - ./registry-auth.crt:/registry-auth.crt
