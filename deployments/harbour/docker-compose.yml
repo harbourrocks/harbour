@@ -32,6 +32,7 @@ services:
     env_file:
       - oidc.env
       - services.env
+      - redis.env
     environment:
       LOG_LEVEL: trace
       DOCKER_TOKEN_SIGNING_KEY: /registry-auth.key
@@ -51,6 +52,7 @@ services:
     env_file:
       - oidc.env
       - services.env
+      - redis.env
     environment:
       LOG_LEVEL: trace
       CONTEXT_PATH: /buildcontext
@@ -68,6 +70,7 @@ services:
     env_file:
       - oidc.env
       - services.env
+      - redis.env
     environment:
       LOG_LEVEL: trace
       HOST_URL: http://example.com
