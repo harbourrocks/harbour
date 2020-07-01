@@ -2,7 +2,7 @@
 
 scripts/ngrok
 
-deployments/registry/registry-auth*
+deployments/**/registry-auth*
 
 buildcontext
 
