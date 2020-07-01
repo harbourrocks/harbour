@@ -29,9 +29,9 @@ export class ManualBuildComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     this.graphQlService.getRepositories()
-      .subscribe(repos => this.formModel.items[3].selections = repos.map(repo => repo.name));
+      .subscribe(repos => this.formModel.items[3].selections = repos.map(repo => [repo.name, repo.name]));
     this.githubRepositories = await this.graphQlService.getAllGithubRepositories().toPromise();
-    this.formModel.items[0].selections = this.githubRepositories.map(repo => repo.name);
+    this.formModel.items[0].selections = this.githubRepositories.map(repo => [repo.scm_id, repo.name]);
   }
 
   onCancel() {
