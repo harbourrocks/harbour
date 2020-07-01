@@ -12,6 +12,7 @@ import { GithubRpositories } from '../models/graphql-models/github-repositories.
 import { EnqueueBuild, EnqueueBuildReturn } from '../models/graphql-models/enqueue-build.model';
 import { RegisterApp } from '../models/graphql-models/register-app.model';
 import { RegisterAppService } from './graphQL/registerApp/register-app.service';
+import { RepositoryBuild } from '../models/graphql-models/repository-build.model';
 
 @Injectable({
   providedIn: 'root'
@@ -81,6 +82,13 @@ export class GraphQlService {
 
   enqueueBuild(enqueueData : EnqueueBuild): Observable<EnqueueBuildReturn> {
     return this.repositoryBuildsService.enqueueBuild(enqueueData)
+  }
+
+  getAllBuilds(): Observable<RepositoryBuild[]> {
+    return this.getRepositories().pipe(
+      mergeMap(repos => repos.map(repo => this.getRepositoryBuilds(repo.name))),
+      mergeAll(1),
+    )
   }
 
 }
