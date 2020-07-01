@@ -37,7 +37,7 @@ func RunBuildServer(o *configuration.Options) error {
 	http.HandleFunc("/builds", pipeline(handler.RepositoryBuilds))
 	http.HandleFunc("/build", unPipeline(buildHandler.Build))
 
-	bindAddress := "127.0.0.1:5200"
+	bindAddress := "0.0.0.0:5200"
 	logrus.Info(fmt.Sprintf("Listening on httphandler://%s/", bindAddress))
 
 	err = http.ListenAndServe(bindAddress, nil)
