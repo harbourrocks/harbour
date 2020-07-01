@@ -27,7 +27,7 @@ export class AddAccountComponent implements OnInit {
         {name: "installationId", placeholder: "InstallationId"},
         {name: "clientId", placeholder: "ClientId"},
         {name: "clientSecret", placeholder: "ClientSecret"},
-        {name: "privateKey", placeholder: "PrivateKey"},
+        {name: "privateKey", placeholder: "PrivateKey", multiline: true},
       ],
     }
 

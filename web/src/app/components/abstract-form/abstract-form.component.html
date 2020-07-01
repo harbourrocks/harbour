@@ -2,17 +2,20 @@
     <div class="hb-header-2">{{formModel.header}}</div>
     <form class="form-items" [formGroup]="formBuild">
         <ng-container *ngFor="let item of formModel.items;index as i;">
-            <input [formControlName]="item.name" type="text" class="hb-input" [placeholder]="item.placeholder" *ngIf="!item.selections"
-                (click)="selectField(item.name)">
+          <input [formControlName]="item.name" type="text" class="hb-input" [placeholder]="item.placeholder" *ngIf="!item.selections && !item.multiline"
+                 (click)="selectField(item.name)">
+
+          <textarea [formControlName]="item.name" class="hb-input" [placeholder]="item.placeholder" *ngIf="!item.selections && item.multiline"
+                    (click)="selectField(item.name)"></textarea>
 
             <ng-container *ngIf="!!item.selections">
-                <input type="text" [attr.list]="'datalist-'+i" [placeholder]="item.placeholder" [formControlName]="item.name" 
+                <input type="text" [attr.list]="'datalist-'+i" [placeholder]="item.placeholder" [formControlName]="item.name"
                 class="hb-input hb-input--selectable"
                 [class.hb-input--selected]="formBuild.controls[item.name].value !== null" />
                 <datalist id="datalist-{{i}}" >
                     <option *ngFor="let select of item.selections" [value]="select">{{select}}</option>
                 </datalist>
-               
+
             </ng-container>
         </ng-container>
         <div class="form-button-wrapper">

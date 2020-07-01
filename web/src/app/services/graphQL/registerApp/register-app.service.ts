@@ -16,7 +16,7 @@ export class RegisterAppService {
   registerApp(registerData: RegisterApp) {
     return this.apollo.mutate({
       mutation: gql`
-        mutation manuallyRegisterApp($clientId: String, $clientSecret: String, $privateKey: String, $appId: String, $installationId: String){
+        mutation manuallyRegisterApp($clientId: String, $clientSecret: String, $privateKey: String, $appId: Int, $installationId: String){
           manuallyRegisterApp(
             clientId: $clientId
             clientSecret: $clientSecret
