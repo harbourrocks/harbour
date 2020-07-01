@@ -79,11 +79,12 @@ export class GraphQlService {
   }
 
   addGithubAccount(data: RegisterApp): Observable<string> {
-    return this.registerAppService.registerApp(data);
+    return this.registerAppService.registerApp(data).pipe(tap(_=>this.getAllGithubRepositories()));
   }
 
   enqueueBuild(enqueueData: EnqueueBuild): Observable<EnqueueBuildReturn> {
-    return this.repositoryBuildsService.enqueueBuild(enqueueData)
+    return this.repositoryBuildsService.enqueueBuild(enqueueData).pipe(tap(_=> this.getAllBuilds()));
+    
   }
 
   getAllBuilds(): Observable<RepositoryBuild[]> {
