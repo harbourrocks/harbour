@@ -13,6 +13,7 @@ import { EnqueueBuild, EnqueueBuildReturn } from '../models/graphql-models/enque
 import { RegisterApp } from '../models/graphql-models/register-app.model';
 import { RegisterAppService } from './graphQL/registerApp/register-app.service';
 import { RepositoryBuild } from '../models/graphql-models/repository-build.model';
+import { RegistryPasswordService } from './graphQL/registryPassword/registry-password.service';
 
 @Injectable({
   providedIn: 'root'
@@ -24,7 +25,8 @@ export class GraphQlService {
     private repositoryBuildsService: RepositoryBuildsService,
     private repositoryService: RepositoryService,
     private tagService: TagService,
-    private registerAppService: RegisterAppService
+    private registerAppService: RegisterAppService,
+    private registryPasswordService: RegistryPasswordService
   ) { }
 
   getGithubOrganizations() {
@@ -89,6 +91,10 @@ export class GraphQlService {
       mergeMap(repos => repos.map(repo => this.getRepositoryBuilds(repo.name))),
       mergeAll(1),
     )
+  }
+
+  setPassword(password: string) {
+    this.registryPasswordService.setRegistryPassword(password);
   }
 
 }

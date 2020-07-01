@@ -6,6 +6,7 @@ import { Tag } from 'src/app/models/graphql-models/tags.model';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { List } from 'src/app/models/list.model';
+import { BuildStatus } from 'src/app/models/build-status.enum';
 
 @Component({
   selector: 'app-repository-details',
@@ -34,7 +35,7 @@ export class RepositoryDetailsComponent implements OnInit {
             label: `${build.repository}:${build.tag}`,
             preLabel: `#${build.commit}`,
             sufLabel: build.endTime + "",
-            status: build.buildStatus
+            status: BuildStatus[build.buildStatus]
 
           }))
         })))

@@ -15,7 +15,8 @@
         </div>
         <div class="settings-body">
             <div class="settings__password-label">Commandoline Password:</div>
-            <input type="text" class="hb-input settings__password-input">
+            <input #passwordInput type="text" class="hb-input settings__password-input">
         </div>
+        <app-button label="Submit" (onClick)="passwordSet()"></app-button>
     </ng-container>
 </div>
