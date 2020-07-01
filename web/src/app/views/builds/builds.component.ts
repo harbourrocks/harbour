@@ -3,6 +3,7 @@ import { GraphQlService } from 'src/app/services/graphql.service';
 import { Observable } from 'rxjs';
 import { List } from 'src/app/models/list.model';
 import { map, mergeAll } from 'rxjs/operators';
+import { BuildStatus } from 'src/app/models/build-status.enum';
 
 @Component({
   selector: 'app-builds',
@@ -22,7 +23,7 @@ export class BuildsComponent implements OnInit {
             label: `${build.repository}:${build.tag}`,
             preLabel: `#${build.commit}`,
             sufLabel: build.endTime + "",
-            status: build.buildStatus
+            color: BuildStatus[build.buildStatus]
 
           }))
         })))

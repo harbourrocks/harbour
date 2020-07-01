@@ -1,5 +1,5 @@
 <div class="item" (click)="onClick.emit(listItem)" [class.item--clickable]="listItem.clickable">
-    <div class="item-status">{{listItem.status}}</div>
+    <div class="item-status" [style.background]="listItem.color"></div>
     <div class="item-prelabel">
         {{listItem.preLabel}}</div>
     <div class="item-label">

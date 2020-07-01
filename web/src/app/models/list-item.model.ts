@@ -3,7 +3,7 @@ import { BuildStatus } from './build-status.enum';
 export interface ListItem {
     label: string,
     preLabel?: string,
-    status?: BuildStatus,
+    color?: string,
     sufLabel?: string,
     clickable?: boolean,
 }
