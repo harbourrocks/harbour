@@ -10,7 +10,7 @@ import { Observable } from 'rxjs';
   styleUrls: ['./settings.component.scss']
 })
 export class SettingsComponent implements OnInit {
-  
+
   @ViewChild('passwordInput') passwordInput: ElementRef;
 
   navigationLabels = ["Accounts", "Passwords"];
@@ -30,10 +30,11 @@ export class SettingsComponent implements OnInit {
   pageChange(newPageIndex: number) {
     this.currentPageIndex = newPageIndex;
   }
+
   passwordSet(){
     const value = this.passwordInput.nativeElement.value;
     if(value.length === 0) return;
-    this.graphQlService.setPassword(value)
+    this.graphQlService.setPassword(value).subscribe(console.log);
   }
 
 }

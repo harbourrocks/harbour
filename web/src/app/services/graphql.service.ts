@@ -55,7 +55,7 @@ export class GraphQlService {
 
   createDashboardData(){
     return this.getRepositories().pipe(
-      map(repos => repos.map(repo => 
+      map(repos => repos.map(repo =>
           forkJoin(
             this.getRepositoryBuilds(repo.name),
             this.getTags(repo.name)
@@ -84,7 +84,6 @@ export class GraphQlService {
 
   enqueueBuild(enqueueData: EnqueueBuild): Observable<EnqueueBuildReturn> {
     return this.repositoryBuildsService.enqueueBuild(enqueueData).pipe(tap(_=> this.getAllBuilds()));
-    
   }
 
   getAllBuilds(): Observable<RepositoryBuild[]> {
@@ -93,12 +92,11 @@ export class GraphQlService {
       map(builds => forkJoin(builds)),
       mergeAll(1),
       map(builds => builds.reduce((a,b) => a.concat(b)))
-
     )
   }
 
   setPassword(password: string) {
-    this.registryPasswordService.setRegistryPassword(password);
+    return this.registryPasswordService.setRegistryPassword(password);
   }
 
 }

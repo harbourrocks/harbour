@@ -14,10 +14,10 @@ export class AddAccountComponent implements OnInit {
 
   public formModel: FormModel;
 
-  constructor(private _location: Location, private route: ActivatedRoute,private graphQlService: GraphQlService) { 
-    
+  constructor(private _location: Location, private route: ActivatedRoute,private graphQlService: GraphQlService) {
+
   }
-  
+
   ngOnInit(): void {
     const accountProvider = this.route.snapshot.paramMap.get('acc_prov');
     this.formModel = {
@@ -30,7 +30,7 @@ export class AddAccountComponent implements OnInit {
         {name: "privateKey", placeholder: "PrivateKey"},
       ],
     }
-    
+
   }
 
   onCancel() {
@@ -38,8 +38,8 @@ export class AddAccountComponent implements OnInit {
   }
 
   onSubmit(data: RegisterApp) {
-    this.graphQlService.addGithubAccount(data);
-    
+    this.graphQlService.addGithubAccount(data).subscribe(console.log);
+
     this._location.back();
   }
 }

@@ -1,10 +1,9 @@
-import { Component, OnInit } from '@angular/core';
-import { FormModel } from 'src/app/models/form.model';
-import { Location } from '@angular/common';
-import { EnqueueBuild } from 'src/app/models/graphql-models/enqueue-build.model';
-import { GraphQlService } from 'src/app/services/graphql.service';
-import { GithubRpositories } from 'src/app/models/graphql-models/github-repositories.model';
-import { of } from 'rxjs';
+import {Component, OnInit} from '@angular/core';
+import {FormModel} from 'src/app/models/form.model';
+import {Location} from '@angular/common';
+import {EnqueueBuild} from 'src/app/models/graphql-models/enqueue-build.model';
+import {GraphQlService} from 'src/app/services/graphql.service';
+import {GithubRpositories} from 'src/app/models/graphql-models/github-repositories.model';
 
 @Component({
   selector: 'app-manual-build',
@@ -25,14 +24,14 @@ export class ManualBuildComponent implements OnInit {
     ],
   }
 
-  constructor(private _location: Location, private graphQlService: GraphQlService) { }
+  constructor(private _location: Location, private graphQlService: GraphQlService) {
+  }
 
   async ngOnInit(): Promise<void> {
     this.graphQlService.getRepositories()
       .subscribe(repos => this.formModel.items[3].selections = repos.map(repo => repo.name));
     this.githubRepositories = await this.graphQlService.getAllGithubRepositories().toPromise();
     this.formModel.items[0].selections = this.githubRepositories.map(repo => repo.name);
-
   }
 
   onCancel() {
@@ -44,5 +43,4 @@ export class ManualBuildComponent implements OnInit {
 
     this._location.back();
   }
-
 }
