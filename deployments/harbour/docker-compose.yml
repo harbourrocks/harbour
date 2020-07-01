@@ -29,6 +29,8 @@ services:
   iam:
     container_name: harbour-iam
     image: harbour-iam
+    depends_on:
+      - redis
     env_file:
       - oidc.env
       - services.env
@@ -49,6 +51,8 @@ services:
   build:
     container_name: harbour-build
     image: harbour-build
+    depends_on:
+      - redis
     env_file:
       - oidc.env
       - services.env
@@ -67,6 +71,8 @@ services:
   scm:
     container_name: harbour-scm
     image: harbour-scm
+    depends_on:
+      - redis
     env_file:
       - oidc.env
       - services.env
@@ -86,11 +92,14 @@ services:
   gateway:
     container_name: harbour-gateway
     image: harbour-gateway
+    depends_on:
+      - redis
     ports:
       - 5400:5400
     env_file:
       - oidc.env
       - services.env
+      - redis.env
     environment:
       LOG_LEVEL: trace
       CORS_ALLOWED_URLS: https://harbour.rocks
