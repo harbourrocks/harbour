@@ -8,6 +8,7 @@ import (
 	l "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"os"
+	"strings"
 )
 
 type Options struct {
@@ -48,6 +49,9 @@ func ParseViperConfig() *Options {
 	} else if path, err := os.Stat(s.ContextPath); os.IsNotExist(err) || !path.IsDir() {
 		l.Fatal("CONTEXT_PATH not found or a file")
 	}
+
+	s.SCMConfig.Url = viper.GetString("SCM_URL")
+	s.SCMConfig.Url = strings.Trim(s.SCMConfig.Url, "/")
 
 	s.OIDCConfig = auth.ParseViperConfig()
 	s.Redis = redisconfig.ParseViperConfig()
