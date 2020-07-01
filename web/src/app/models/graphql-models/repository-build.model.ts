@@ -9,5 +9,6 @@ export interface RepositoryBuild {
     scmId?: string,
     startTime?: number,
     tag?: string,
+    buildId?: string
 }
 
