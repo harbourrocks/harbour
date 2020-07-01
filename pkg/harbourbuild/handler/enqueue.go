@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"fmt"
 	"github.com/google/uuid"
 	"github.com/harbourrocks/harbour/pkg/apiclient"
 	"github.com/harbourrocks/harbour/pkg/auth"
@@ -45,7 +46,7 @@ func (eh EnqueueHandler) EnqueueBuild(w http.ResponseWriter, r *http.Request) {
 
 	body := handler.CheckoutRequestModel{
 		SCMId:       buildRequest.SCMId,
-		CallbackURL: "http://localhost:5200/build",
+		CallbackURL: fmt.Sprintf("%s/build", eh.config.BuildUrl),
 		State:       buildKey,
 		Commit:      buildRequest.Commit,
 	}

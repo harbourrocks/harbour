@@ -16,6 +16,7 @@ type Options struct {
 	Redis          redisconfig.RedisOptions
 	OIDCConfig     auth.OIDCConfig
 	DockerRegistry registry.RegistryConfig
+	BuildUrl       string
 	SCMConfig
 }
 
@@ -35,6 +36,7 @@ func NewDefaultOptions() *Options {
 		SCMConfig: SCMConfig{
 			Url: "http://localhost:5300",
 		},
+		BuildUrl: "http://localhost:5200",
 	}
 
 	return &s
@@ -52,6 +54,9 @@ func ParseViperConfig() *Options {
 
 	s.SCMConfig.Url = viper.GetString("SCM_URL")
 	s.SCMConfig.Url = strings.Trim(s.SCMConfig.Url, "/")
+
+	s.BuildUrl = viper.GetString("BUILD_URL")
+	s.BuildUrl = strings.Trim(s.BuildUrl, "/")
 
 	s.OIDCConfig = auth.ParseViperConfig()
 	s.Redis = redisconfig.ParseViperConfig()
