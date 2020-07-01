@@ -103,6 +103,9 @@ var buildType = graphql.NewObject(
 	graphql.ObjectConfig{
 		Name: "Build",
 		Fields: graphql.Fields{
+			"buildId": &graphql.Field{
+				Type: graphql.String,
+			},
 			"scmId": &graphql.Field{
 				Type: graphql.String,
 			},
