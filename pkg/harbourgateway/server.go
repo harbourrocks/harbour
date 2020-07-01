@@ -51,7 +51,7 @@ func RunGatewayServer(o *configuration.Options) error {
 
 	http.HandleFunc("/graphql", pipeline(graphqlcontext.UseGraphQl(schema)))
 
-	bindAddress := "127.0.0.1:5400"
+	bindAddress := "0.0.0.0:5400"
 	logrus.Info(fmt.Sprintf("Listening on http://%s/", bindAddress))
 
 	err := http.ListenAndServe(bindAddress, nil)
