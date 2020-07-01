@@ -15,7 +15,9 @@ export class BuildsComponent implements OnInit {
 
   constructor(private graphQlService: GraphQlService) { }
 
-  async ngOnInit(): Promise<void> {
+  ngOnInit(): void {
+    this.graphQlService.getAllBuilds().subscribe(console.log)
+
     this.builds = this.graphQlService.getAllBuilds()
       .pipe(map(builds =>
         ({

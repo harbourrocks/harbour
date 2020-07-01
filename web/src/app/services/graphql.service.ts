@@ -6,8 +6,8 @@ import { RepositoryService } from './graphQL/repositoryService/repository.servic
 import { TagService } from './graphQL/tagService/tag.service';
 import { DashboardListItem } from '../models/dashboard-list-item.model';
 import { DashboardListItemComponent } from '../components/dashboard-list-item/dashboard-list-item.component';
-import { mergeMap, flatMap, map, mergeAll } from 'rxjs/operators';
-import { Observable } from 'rxjs';
+import { mergeMap, flatMap, map, mergeAll, tap, concatAll } from 'rxjs/operators';
+import { Observable, scheduled, asyncScheduler, forkJoin } from 'rxjs';
 import { GithubRpositories } from '../models/graphql-models/github-repositories.model';
 import { EnqueueBuild, EnqueueBuildReturn } from '../models/graphql-models/enqueue-build.model';
 import { RegisterApp } from '../models/graphql-models/register-app.model';
@@ -53,22 +53,22 @@ export class GraphQlService {
     return this.tagService.getTags(repositoryName);
   }
 
-  async createDashboardData() {
-    const githubOrganizations = await this.getGithubOrganizations().toPromise();
-    githubOrganizations.forEach(async orga => {
-      const githubRepos = await this.getGithubRepositories(orga.login).toPromise();
-
-
-    })
-
-
-    const item: DashboardListItem = {
-      builds: [],
-      images: [], // tags
-      name: "",
-
-    }
-
+  createDashboardData(){
+    return this.getRepositories().pipe(
+      map(repos => repos.map(repo => 
+          forkJoin(
+            this.getRepositoryBuilds(repo.name),
+            this.getTags(repo.name)
+          )
+          .pipe(
+            map(([builds, tags]) => ({
+            builds, images: tags,name: repo.name
+          })
+          ),)
+      )),
+      map(obs => forkJoin(obs)),
+      mergeAll(1)
+      )
   }
 
   getAllGithubRepositories(): Observable<Array<GithubRpositories>> {
@@ -82,13 +82,14 @@ export class GraphQlService {
     return this.registerAppService.registerApp(data);
   }
 
-  enqueueBuild(enqueueData : EnqueueBuild): Observable<EnqueueBuildReturn> {
+  enqueueBuild(enqueueData: EnqueueBuild): Observable<EnqueueBuildReturn> {
     return this.repositoryBuildsService.enqueueBuild(enqueueData)
   }
 
   getAllBuilds(): Observable<RepositoryBuild[]> {
     return this.getRepositories().pipe(
-      mergeMap(repos => repos.map(repo => this.getRepositoryBuilds(repo.name))),
+      map(repos => repos.map(repo => this.getRepositoryBuilds(repo.name).pipe(concatAll()))),
+      map(repos => forkJoin(repos)),
       mergeAll(1),
     )
   }

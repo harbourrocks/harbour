@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { GraphQlService } from 'src/app/services/graphql.service';
 import { DashboardListItem } from 'src/app/models/dashboard-list-item.model';
 import { BuildStatus } from 'src/app/models/build-status.enum';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-dashboard',
@@ -9,33 +10,12 @@ import { BuildStatus } from 'src/app/models/build-status.enum';
   styleUrls: ['./dashboard.component.scss']
 })
 export class DashboardComponent implements OnInit {
-  public models: Array<DashboardListItem>;
+  public models: Observable<Array<DashboardListItem>>;
 
-  constructor(private graphQlService: GraphQlService) {
-    // Dummy data
-    if(!this.models){
-      this.models = [
-        {
-          builds: [
-            {buildStatus: BuildStatus.Failed, commit: "",timestamp:0},
-            {buildStatus: BuildStatus.Failed, commit: "",timestamp:0},
-            {buildStatus: BuildStatus.Failed, commit: "",timestamp:0},
-          ],
-          images: [
-            {name: "name"},
-            {name: "name"},
-            {name: "name"},
-            {name: "name"},
-          ],
-          name: "Frontend"
-          
-        }
-      ]
-    }
-  }
+  constructor(private graphQlService: GraphQlService) {}
 
   ngOnInit(): void {
-    this.graphQlService.createDashboardData();
+    this.models = this.graphQlService.createDashboardData();
   }
 
 }
