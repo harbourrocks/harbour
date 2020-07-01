@@ -6,7 +6,7 @@ import { RepositoryService } from './graphQL/repositoryService/repository.servic
 import { TagService } from './graphQL/tagService/tag.service';
 import { DashboardListItem } from '../models/dashboard-list-item.model';
 import { DashboardListItemComponent } from '../components/dashboard-list-item/dashboard-list-item.component';
-import { mergeMap, flatMap, map, mergeAll, tap, concatAll } from 'rxjs/operators';
+import { mergeMap, flatMap, map, mergeAll, tap, concatAll, concatMap, toArray, mapTo } from 'rxjs/operators';
 import { Observable, scheduled, asyncScheduler, forkJoin } from 'rxjs';
 import { GithubRpositories } from '../models/graphql-models/github-repositories.model';
 import { EnqueueBuild, EnqueueBuildReturn } from '../models/graphql-models/enqueue-build.model';
@@ -89,9 +89,11 @@ export class GraphQlService {
 
   getAllBuilds(): Observable<RepositoryBuild[]> {
     return this.getRepositories().pipe(
-      map(repos => repos.map(repo => this.getRepositoryBuilds(repo.name).pipe(concatAll()))),
-      map(repos => forkJoin(repos)),
+      map(repos => repos.map(repo => this.getRepositoryBuilds(repo.name))),
+      map(builds => forkJoin(builds)),
       mergeAll(1),
+      map(builds => builds.reduce((a,b) => a.concat(b)))
+
     )
   }
 
