@@ -31,6 +31,8 @@ services:
     image: harbour-iam
     depends_on:
       - redis
+    ports:
+      - 5100:5100
     env_file:
       - oidc.env
       - services.env
