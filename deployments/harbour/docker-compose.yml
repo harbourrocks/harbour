@@ -57,6 +57,7 @@ services:
     volumes:
       - build-workplace:/buildcontext
       - scm-workplace:/scm
+      - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - redis
       - services
