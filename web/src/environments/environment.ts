@@ -6,7 +6,8 @@ export const environment = {
   production: false,
   oidcDiscoverUrl: 'https://login.microsoftonline.com/07a987a0-3eef-42a9-a7d6-53698899fcf2/v2.0/.well-known/openid-configuration',
   oidcClientId: 'd8dfd041-5a71-465d-8d15-7d2b91c0b1ba',
-  oidcRedirectUrl: 'http://localhost:4200/auth/oidc/callback'
+  oidcRedirectUrl: 'http://localhost:4200/auth/oidc/callback',
+  graphQlUrl: 'http://localhost:5400/graphql'
 };
 
 /*
