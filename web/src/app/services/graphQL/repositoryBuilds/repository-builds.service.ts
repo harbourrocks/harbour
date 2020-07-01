@@ -44,11 +44,13 @@ export class RepositoryBuildsService {
           startTime
           tag
           timestamp
+          buildId
         }
       }`,
       variables: { repository: repository },
     })
-      .pipe(map((result: ApolloQueryResult<{ repositoryBuilds: Array<RepositoryBuild> }>) => result.data.repositoryBuilds))
+      .pipe(map((result: ApolloQueryResult<{ repositoryBuilds: Array<RepositoryBuild> }>) => result.data.repositoryBuilds)
+        ,map(builds => builds.map(build => ({...build, buildId: build.buildId.slice(6).replace(/\W/g, '')}))))
   }
 
   enqueueBuild(enqueueData: EnqueueBuild) {
