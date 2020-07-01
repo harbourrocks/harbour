@@ -81,8 +81,8 @@ services:
       - services
 
   gateway:
-    container_name: harbour-iam
-    image: harbour-iam
+    container_name: harbour-gateway
+    image: harbour-gateway
     ports:
       - 5400:5400
     env_file:
