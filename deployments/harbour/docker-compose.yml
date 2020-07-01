@@ -119,7 +119,6 @@ services:
     environment:
       GRAPH_QL_URL: https://api.harbour.rocks/graphql
       UI_ROOT: https://harbour.rocks
-      OIDC_DISCOVERY_URL: https://login.microsoftonline.com/07a987a0-3eef-42a9-a7d6-53698899fcf2/v2.0/.well-known/openid-configuration
 
 networks:
   redis:

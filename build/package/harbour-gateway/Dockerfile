@@ -7,6 +7,6 @@ COPY . /module/
 RUN CGO_ENABLED=0 GOOS=linux go build -o harbour /module/cmd/harbour-gateway
 
 # final stage
-FROM scratch
+FROM alpine
 COPY --from=build-env /module/harbour  .
 ENTRYPOINT ["/harbour"]
