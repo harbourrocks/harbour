@@ -5,19 +5,18 @@ import { setContext } from 'apollo-link-context';
 import { HttpLinkModule, HttpLink } from 'apollo-angular-link-http';
 import { InMemoryCache } from 'apollo-cache-inmemory';
 import { HttpClientModule } from '@angular/common/http';
+import {environment} from "../../../environments/environment";
 
-// TODO: Add GrpahQL endpoint
-const uri = 'http://localhost:5400/graphql'; // <-- add the URL of the GraphQL server here
 export function createApollo(httpLink: HttpLink) {
 
-  const token = localStorage.getItem('iam-id_token');  
+  const token = localStorage.getItem('iam-id_token');
   const auth = setContext((operation, context) => ({
     headers: {
       Authorization: `Bearer ${token}`
     },
   }));
 
-  const link = ApolloLink.from([auth, httpLink.create({ uri })]);
+  const link = ApolloLink.from([auth, httpLink.create({ uri: environment.graphQlUrl })]);
   const cache = new InMemoryCache();
 
   return {

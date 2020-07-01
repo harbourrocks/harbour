@@ -11,11 +11,10 @@ import (
 
 // DockerOptions hold the options required to authenticate docker cli clients
 type DockerOptions struct {
-	SigningKeyPath     string
-	CertificatePath    string
-	ValidDockerService string
-	Issuer             string
-	TokenLifetime      time.Duration
+	SigningKeyPath  string
+	CertificatePath string
+	Issuer          string
+	TokenLifetime   time.Duration
 }
 
 // Options defines all options available to configure the IAM server.
@@ -53,11 +52,10 @@ func ParseViperConfig() *Options {
 	s.Redis = redisconfig.ParseViperConfig()
 
 	s.Docker = DockerOptions{
-		SigningKeyPath:     viper.GetString("DOCKER_TOKEN_SIGNING_KEY"),
-		CertificatePath:    viper.GetString("DOCKER_TOKEN_CERTIFICATE"),
-		ValidDockerService: viper.GetString("DOCKER_VALID_SERVICE"),
-		Issuer:             viper.GetString("DOCKER_TOKEN_ISSUER"),
-		TokenLifetime:      viper.GetDuration("DOCKER_TOKEN_LIFETIME"),
+		SigningKeyPath:  viper.GetString("DOCKER_TOKEN_SIGNING_KEY"),
+		CertificatePath: viper.GetString("DOCKER_TOKEN_CERTIFICATE"),
+		Issuer:          viper.GetString("DOCKER_TOKEN_ISSUER"),
+		TokenLifetime:   viper.GetDuration("DOCKER_TOKEN_LIFETIME"),
 	}
 
 	if _, err := os.Stat(s.Docker.SigningKeyPath); os.IsNotExist(err) {

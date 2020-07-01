@@ -1,0 +1,115 @@
+version: '3.3'
+services:
+
+  redis:
+    container_name: redis
+    image: redis:5-alpine
+    entrypoint: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis:/data
+    networks:
+      - redis
+
+  registry:
+    container_name: standalone-registry
+    image: registry:2
+    ports:
+      - 5000:5000
+    environment:
+      REGISTRY_AUTH_TOKEN_AUTOREDIRECT: "false"
+      REGISTRY_AUTH_TOKEN_REALM: http://harbour-iam/docker/auth/token
+      REGISTRY_AUTH_TOKEN_SERVICE: https://harbour.rocks
+      REGISTRY_AUTH_TOKEN_ISSUER: https://harbour.rocks
+      REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE: /registry-auth.crt
+    volumes:
+      - ./registry-auth.crt:/registry-auth.crt
+    networks:
+      - services
+
+  iam:
+    container_name: harbour-iam
+    image: harbour-iam
+    env_file:
+      - oidc.env
+      - services.env
+    environment:
+      LOG_LEVEL: trace
+      DOCKER_TOKEN_SIGNING_KEY: /registry-auth.key
+      DOCKER_TOKEN_CERTIFICATE: /registry-auth.crt
+      DOCKER_TOKEN_ISSUER: https://harbour.rocks
+      DOCKER_TOKEN_LIFETIME: 3600s
+    volumes:
+      - ./registry-auth.crt:/registry-auth.crt
+      - ./registry-auth.key:/registry-auth.key
+    networks:
+      - redis
+      - services
+
+  build:
+    container_name: harbour-build
+    image: harbour-build
+    env_file:
+      - oidc.env
+      - services.env
+    environment:
+      LOG_LEVEL: trace
+      CONTEXT_PATH: /buildcontext
+    volumes:
+      - build-workplace:/buildcontext
+      - scm-workplace:/scm
+    networks:
+      - redis
+      - services
+
+  scm:
+    container_name: harbour-scm
+    image: harbour-scm
+    env_file:
+      - oidc.env
+      - services.env
+    environment:
+      LOG_LEVEL: trace
+      HOST_URL: http://example.com
+      GITHUB_APP_HOMEPAGE: http://example.com
+      UI_URL: http://example.com
+      CHECKOUT_PATH: /scm
+    volumes:
+      - scm-workplace:/scm
+    networks:
+      - redis
+      - services
+
+  gateway:
+    container_name: harbour-iam
+    image: harbour-iam
+    ports:
+      - 5400:5400
+    env_file:
+      - oidc.env
+      - services.env
+    environment:
+      LOG_LEVEL: trace
+      CORS_ALLOWED_URLS: https://harbour.rocks
+    networks:
+      - redis
+      - services
+
+  web:
+    container_name: harbour-web
+    image: harbour-web
+    ports:
+      - 8080:80
+    env_file:
+      - oidc.env
+    environment:
+      GRAPH_QL_URL: https://harbour.rocks/graphql
+      UI_ROOT: https://harbor.rocks
+
+networks:
+  redis:
+  services:
+
+volumes:
+  build-workplace:
+  scm-workplace:
+  redis:
