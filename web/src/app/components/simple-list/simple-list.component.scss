@@ -4,6 +4,8 @@ $heightOfCell: 80px;
 
 .list {
   list-style: none;
+  max-height: 700px;
+  overflow-y: scroll;
   
   padding: 0;
 

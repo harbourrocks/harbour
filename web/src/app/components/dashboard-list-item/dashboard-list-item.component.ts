@@ -12,7 +12,7 @@ export class DashboardListItemComponent implements OnInit {
   @Input() model: DashboardListItem;
   buildDetails: Array<{
     buildTime: number;
-    color: any;
+    color: string;
     failed: boolean;
   }>;
 
@@ -34,7 +34,7 @@ export class DashboardListItemComponent implements OnInit {
 
   resolveBuildHeight(buildDetails: Array<{
     buildTime: number;
-    color: any;
+    color: string;
     failed: boolean;
   }>) {
     const maxVal = buildDetails.reduce((a, b) => a.buildTime < b.buildTime ? b : a);
