@@ -2,4 +2,12 @@
     <div class="item-name">{{model.name}}</div>
     <div class="item-info"><span>Builds:</span><span>{{model.builds.length}}</span></div>
     <div class="item-info"><span>Images:</span><span>{{model.images.length}}</span></div>
+    <div class="item-block_wrapper">
+        <div *ngFor="let detail of buildDetails;let i = index"
+        class="item-block"
+        [class.item-block--failed]="detail.failed"
+        [style.background]="detail.color"
+        [style.height]="detail.buildTime + 'px'"
+        ></div>
+    </div>
 </div>

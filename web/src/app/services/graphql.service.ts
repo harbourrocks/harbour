@@ -12,6 +12,7 @@ import { RegisterApp } from '../models/graphql-models/register-app.model';
 import { RegisterAppService } from './graphQL/registerApp/register-app.service';
 import { RepositoryBuild } from '../models/graphql-models/repository-build.model';
 import { RegistryPasswordService } from './graphQL/registryPassword/registry-password.service';
+import { subscribe } from 'graphql';
 
 @Injectable({
   providedIn: 'root'

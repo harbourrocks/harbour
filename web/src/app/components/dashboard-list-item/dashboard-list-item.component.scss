@@ -8,6 +8,7 @@
   height: 125px;
   margin-bottom: 30px;
   cursor: pointer;
+  position: relative;
 
   &-name {
       margin-top: 16px;
@@ -18,5 +19,29 @@
     font-size: 14px;
     margin-bottom: 3px;
     padding-left: 4px;
+  }
+
+  &-block_wrapper {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: flex-end;
+    
+    position: absolute;
+    left: 400px;
+    bottom: 0;
+    width: calc(100% - 450px);
+  }
+  
+  &-block {
+    
+    margin-top: auto;
+    height: 60px;
+    width: 17px;
+  }
+
+  &-block--failed {
+    
+    margin-top: auto;
+    height: 17px !important;
   }
 }
