@@ -4,10 +4,8 @@ import { GithubRepositoryService } from './graphQL/githubRepository/github-repos
 import { RepositoryBuildsService } from './graphQL/repositoryBuilds/repository-builds.service';
 import { RepositoryService } from './graphQL/repositoryService/repository.service';
 import { TagService } from './graphQL/tagService/tag.service';
-import { DashboardListItem } from '../models/dashboard-list-item.model';
-import { DashboardListItemComponent } from '../components/dashboard-list-item/dashboard-list-item.component';
 import { mergeMap, flatMap, map, mergeAll, tap, concatAll, concatMap, toArray, mapTo } from 'rxjs/operators';
-import { Observable, scheduled, asyncScheduler, forkJoin } from 'rxjs';
+import { Observable, forkJoin } from 'rxjs';
 import { GithubRpositories } from '../models/graphql-models/github-repositories.model';
 import { EnqueueBuild, EnqueueBuildReturn } from '../models/graphql-models/enqueue-build.model';
 import { RegisterApp } from '../models/graphql-models/register-app.model';
@@ -79,11 +77,11 @@ export class GraphQlService {
   }
 
   addGithubAccount(data: RegisterApp): Observable<string> {
-    return this.registerAppService.registerApp(data).pipe(tap(_=>this.getAllGithubRepositories()));
+    return this.registerAppService.registerApp(data);
   }
 
   enqueueBuild(enqueueData: EnqueueBuild): Observable<EnqueueBuildReturn> {
-    return this.repositoryBuildsService.enqueueBuild(enqueueData).pipe(tap(_=> this.getAllBuilds()));
+    return this.repositoryBuildsService.enqueueBuild(enqueueData);
   }
 
   getAllBuilds(): Observable<RepositoryBuild[]> {

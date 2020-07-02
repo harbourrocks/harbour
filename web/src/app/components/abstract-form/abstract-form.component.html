@@ -13,7 +13,7 @@
                 class="hb-input hb-input--selectable"
                 [class.hb-input--selected]="formBuild.controls[item.name].value !== null" />
                 <datalist id="datalist-{{i}}" >
-                    <option *ngFor="let select of item.selections" [value]="select[0]">{{select[1]}}</option>
+                    <option *ngFor="let select of item.selections" [value]="select">{{select}}</option>
                 </datalist>
 
             </ng-container>
