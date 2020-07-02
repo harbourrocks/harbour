@@ -10,7 +10,7 @@
   padding-right: 63px;
   margin-bottom: 30px;
 
-  font-size: 24px;
+  font-size: 20px;
   line-height: 75px;
   position: relative;
 
@@ -21,19 +21,26 @@
     left: 0px;
   }
 
+  &-label {
+    white-space: nowrap;
+
+  }
+
   // HACKY FOR PRESENTATION
   &-prelabel {
     margin-right: 100px;
-    margin-top: 7px;
+    // margin-top: 7px;
     width: 230px;
-    font-size: 80%;
+    // font-size: 80%;
 
-    line-height: 30px;
+    // line-height: 30px;
 
-    overflow-wrap: break-word;
+    // overflow-wrap: break-word;
+    
   }
   &-suflabel {
     margin-left: auto;
+    white-space: nowrap;
   }
 
   &--clickable {
