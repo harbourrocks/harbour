@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChildren, QueryList, ElementRef, ViewChild } from '@angular/core';
-import { faTachometerAlt, faBoxOpen, faHatWizard, faCog } from '@fortawesome/free-solid-svg-icons';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-navbar',
@@ -32,13 +32,14 @@ export class NavbarComponent implements OnInit {
 
   ]
 
-  constructor() { }
+  constructor(private route: ActivatedRoute ) { }
 
   ngOnInit(): void {
   }
 
-  ngAfterViewInit(): void {
-    this.activeHeadEl = this.headerTexts.toArray()[0].nativeElement;
+  ngAfterViewInit() {
+    const index = this.navbarBuild.findIndex(obj => obj.routerLink === window.location.pathname)    
+    this.activeHeadEl = this.headerTexts.toArray()[index>=0?index:0].nativeElement;
     this.underscoreEl = this.underscore.nativeElement;
     this.resetUnderscore();
   }
