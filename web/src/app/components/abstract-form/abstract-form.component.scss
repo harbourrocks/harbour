@@ -18,4 +18,11 @@
         justify-content: space-between;
 
     }
+    &-textarea {
+        resize: vertical;
+        padding-top: 20px;
+        max-height: 150px;
+        height: 44px;
+        min-height: 44px;
+    }
 }

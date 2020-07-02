@@ -5,7 +5,7 @@
           <input [formControlName]="item.name" type="text" class="hb-input" [placeholder]="item.placeholder" *ngIf="!item.selections && !item.multiline"
                  (click)="selectField(item.name)">
 
-          <textarea [formControlName]="item.name" class="hb-input" [placeholder]="item.placeholder" *ngIf="!item.selections && item.multiline"
+          <textarea [formControlName]="item.name" class="hb-input form-textarea" [placeholder]="item.placeholder" *ngIf="!item.selections && item.multiline"
                     (click)="selectField(item.name)"></textarea>
 
             <ng-container *ngIf="!!item.selections">
