@@ -41,7 +41,7 @@ export class GraphQlService {
   }
 
   getRepositoryBuilds(repositoryName: string) {
-    return this.repositoryBuildsService.getRepositoryBuilds(repositoryName);
+    return this.repositoryBuildsService.getRepositoryBuilds(repositoryName).pipe(map(builds => builds.sort((a, b) => a.timestamp - b.timestamp)));
   }
 
   getRepositories() {
@@ -52,22 +52,22 @@ export class GraphQlService {
     return this.tagService.getTags(repositoryName);
   }
 
-  createDashboardData(){
+  createDashboardData() {
     return this.getRepositories().pipe(
       map(repos => repos.map(repo =>
-          forkJoin(
-            this.getRepositoryBuilds(repo.name),
-            this.getTags(repo.name)
-          )
+        forkJoin(
+          this.getRepositoryBuilds(repo.name),
+          this.getTags(repo.name)
+        )
           .pipe(
             map(([builds, tags]) => ({
-            builds, images: tags,name: repo.name
-          })
-          ),)
+              builds, images: tags, name: repo.name
+            })
+            ))
       )),
       map(obs => forkJoin(obs)),
       mergeAll(1)
-      )
+    )
   }
 
   getAllGithubRepositories(): Observable<Array<GithubRpositories>> {
@@ -90,7 +90,7 @@ export class GraphQlService {
       map(repos => repos.map(repo => this.getRepositoryBuilds(repo.name))),
       map(builds => forkJoin(builds)),
       mergeAll(1),
-      map(builds => builds.reduce((a,b) => a.concat(b)))
+      map(builds => builds.reduce((a, b) => a.concat(b).sort((a, b) => a.timestamp - b.timestamp)))
     )
   }
 

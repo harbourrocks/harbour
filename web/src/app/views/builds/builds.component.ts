@@ -24,7 +24,7 @@ export class BuildsComponent implements OnInit {
         map(builds =>
           ({
             listItems: builds
-              .sort((a, b) => a?.startTime - b?.startTime)
+              .reverse()
               .map(build => ( {
                   label: `${build.repository}:${build.tag}`,
                   preLabel: `#${build.buildId.substr(0, 18)}`,
