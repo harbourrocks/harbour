@@ -30,7 +30,6 @@ export class DashboardListItemComponent implements OnInit {
       return { buildTime, color, failed }
     })
     this.buildDetails = this.resolveBuildHeight(details);
-    console.log(this.buildDetails);
   }
 
   resolveBuildHeight(buildDetails: Array<{
