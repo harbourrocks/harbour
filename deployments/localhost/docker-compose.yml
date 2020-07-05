@@ -18,8 +18,8 @@ services:
     environment:
       REGISTRY_AUTH_TOKEN_AUTOREDIRECT: "false"
       REGISTRY_AUTH_TOKEN_REALM: http://localhost:5100/docker/auth/token
-      REGISTRY_AUTH_TOKEN_SERVICE: http://localhost:5000
-      REGISTRY_AUTH_TOKEN_ISSUER: http://localhost:5100
+      REGISTRY_AUTH_TOKEN_SERVICE: http://registry:5000
+      REGISTRY_AUTH_TOKEN_ISSUER: http://harbour-iam:5100
       REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE: /certs/registry-auth.crt
     volumes:
       - ./registry-auth.crt:/certs/registry-auth.crt
@@ -44,7 +44,7 @@ services:
       LOG_LEVEL: trace
       DOCKER_TOKEN_SIGNING_KEY: /registry-auth.key
       DOCKER_TOKEN_CERTIFICATE: /registry-auth.crt
-      DOCKER_TOKEN_ISSUER: http://localhost:5100
+      DOCKER_TOKEN_ISSUER: http://harbour-iam:5100
       DOCKER_TOKEN_LIFETIME: 3600s
     volumes:
       - ./registry-auth.crt:/registry-auth.crt
