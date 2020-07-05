@@ -17,10 +17,11 @@ services:
     image: registry:2
     ports:
       - 5000:5000
+    env_file:
+      - services.env
     environment:
       REGISTRY_AUTH_TOKEN_AUTOREDIRECT: "false"
       REGISTRY_AUTH_TOKEN_REALM: http://localhost:5100/docker/auth/token
-      REGISTRY_AUTH_TOKEN_SERVICE: http://registry:5000
       REGISTRY_AUTH_TOKEN_ISSUER: http://harbour-iam:5100
       REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE: /certs/registry-auth.crt
     volumes:
@@ -70,7 +71,6 @@ services:
     environment:
       LOG_LEVEL: trace
       CONTEXT_PATH: /buildcontext
-      REGISTRY_URL: http://localhost:5000
     volumes:
       - build-workplace:/buildcontext
       - scm-workplace:/scm

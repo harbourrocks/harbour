@@ -15,10 +15,11 @@ services:
     image: registry:2
     ports:
       - 5000:5000
+    env_file:
+      - services.env
     environment:
       REGISTRY_AUTH_TOKEN_AUTOREDIRECT: "false"
       REGISTRY_AUTH_TOKEN_REALM: https://iam.harbour.rocks/docker/auth/token
-      REGISTRY_AUTH_TOKEN_SERVICE: https://io.harbour.rocks
       REGISTRY_AUTH_TOKEN_ISSUER: https://iam.harbour.rocks
       REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE: /registry-auth.crt
     volumes:
