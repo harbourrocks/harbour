@@ -1,0 +1,15 @@
+.git
+scripts
+images
+.idea
+.vscode
+deployments
+workspace
+buildcontext
+.editorconfig
+.env
+.gitattributes
+.gitignore
+CONTRIBUTING.md
+README.md
+web/node_modules
