@@ -1,0 +1,145 @@
+version: '3.3'
+services:
+
+  redis:
+    container_name: redis
+    image: redis:5-alpine
+    entrypoint: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis:/data
+    networks:
+      - redis
+
+  registry:
+    container_name: standalone-registry
+    image: registry:2
+    ports:
+      - 5000:5000
+    environment:
+      REGISTRY_AUTH_TOKEN_AUTOREDIRECT: "false"
+      REGISTRY_AUTH_TOKEN_REALM: http://localhost:5100/docker/auth/token
+      REGISTRY_AUTH_TOKEN_SERVICE: http://localhost:5000
+      REGISTRY_AUTH_TOKEN_ISSUER: http://localhost:5100
+      REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE: /certs/registry-auth.crt
+    volumes:
+      - ./registry-auth.crt:/certs/registry-auth.crt
+    networks:
+      - services
+
+  iam:
+    build:
+      context: ../../
+      dockerfile: ./build/package/harbour-iam/Dockerfile
+    container_name: harbour-iam
+    image: harbour-iam
+    depends_on:
+      - redis
+    ports:
+      - 5100:5100
+    env_file:
+      - oidc.env
+      - services.env
+      - redis.env
+    environment:
+      LOG_LEVEL: trace
+      DOCKER_TOKEN_SIGNING_KEY: /registry-auth.key
+      DOCKER_TOKEN_CERTIFICATE: /registry-auth.crt
+      DOCKER_TOKEN_ISSUER: http://localhost:5100
+      DOCKER_TOKEN_LIFETIME: 3600s
+    volumes:
+      - ./registry-auth.crt:/registry-auth.crt
+      - ./registry-auth.key:/registry-auth.key
+    networks:
+      - redis
+      - services
+
+  build:
+    build:
+      context: ../../
+      dockerfile: ./build/package/harbour-build/Dockerfile
+    container_name: harbour-build
+    image: harbour-build
+    depends_on:
+      - redis
+    env_file:
+      - oidc.env
+      - services.env
+      - redis.env
+    environment:
+      LOG_LEVEL: trace
+      CONTEXT_PATH: /buildcontext
+    volumes:
+      - build-workplace:/buildcontext
+      - scm-workplace:/scm
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - redis
+      - services
+
+  scm:
+    build:
+      context: ../../
+      dockerfile: ./build/package/harbour-scm/Dockerfile
+    container_name: harbour-scm
+    image: harbour-scm
+    depends_on:
+      - redis
+    env_file:
+      - oidc.env
+      - services.env
+      - redis.env
+    environment:
+      LOG_LEVEL: trace
+      HOST_URL: http://example.com
+      GITHUB_APP_HOMEPAGE: http://example.com
+      UI_URL: http://example.com
+      CHECKOUT_PATH: /scm
+    volumes:
+      - scm-workplace:/scm
+    networks:
+      - redis
+      - services
+
+  gateway:
+    build:
+      context: ../../
+      dockerfile: ./build/package/harbour-gateway/Dockerfile
+    container_name: harbour-gateway
+    image: harbour-gateway
+    depends_on:
+      - redis
+    ports:
+      - 5400:5400
+    env_file:
+      - oidc.env
+      - services.env
+      - redis.env
+    environment:
+      LOG_LEVEL: trace
+      CORS_ALLOWED_URLS: http://localhost:4200
+    networks:
+      - redis
+      - services
+
+  web:
+    build:
+      context: ../../
+      dockerfile: ./build/package/harbour-web/Dockerfile
+    container_name: harbour-web
+    image: harbour-web
+    ports:
+      - 4200:80
+    environment:
+      GRAPH_QL_URL: http://localhost:5400/graphql
+      UI_ROOT: http://localhost:4200
+      OIDC_CLIENT_ID: d8dfd041-5a71-465d-8d15-7d2b91c0b1ba
+      OIDC_DISCOVERY_URL: https://login.microsoftonline.com/07a987a0-3eef-42a9-a7d6-53698899fcf2/v2.0/.well-known/openid-configuration
+
+networks:
+  redis:
+  services:
+
+volumes:
+  build-workplace:
+  scm-workplace:
+  redis:
