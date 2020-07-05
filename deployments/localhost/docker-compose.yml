@@ -4,6 +4,8 @@ services:
   redis:
     container_name: redis
     image: redis:5-alpine
+    ports:
+      - 6379:6379
     entrypoint: ["redis-server", "--appendonly", "yes"]
     volumes:
       - redis:/data
@@ -68,6 +70,7 @@ services:
     environment:
       LOG_LEVEL: trace
       CONTEXT_PATH: /buildcontext
+      REGISTRY_URL: http://localhost:5000
     volumes:
       - build-workplace:/buildcontext
       - scm-workplace:/scm
