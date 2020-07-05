@@ -29,16 +29,17 @@ export class ManualBuildComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     this.graphQlService.getRepositories()
-      .subscribe(repos => this.formModel.items[3].selections = repos.map(repo => [repo.name, repo.name]));
+      .subscribe(repos => this.formModel.items[3].selections = repos.map(repo => repo.name));
     this.githubRepositories = await this.graphQlService.getAllGithubRepositories().toPromise();
-    this.formModel.items[0].selections = this.githubRepositories.map(repo => [repo.scm_id, repo.name]);
+    this.formModel.items[0].selections = this.githubRepositories.map(repo => repo.name);
   }
 
   onCancel() {
     this._location.back();
   }
 
-  onSubmit(data: EnqueueBuild) {
+  onSubmit(data: EnqueueBuild) {    
+    data.scmId = this.githubRepositories.find(repo => repo.name == data.scmId).scm_id;    
     this.graphQlService.enqueueBuild(data).subscribe(console.log);
 
     this._location.back();

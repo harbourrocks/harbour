@@ -6,6 +6,7 @@ import {Observable} from 'rxjs';
 import {map} from 'rxjs/operators';
 import {List} from 'src/app/models/list.model';
 import {BuildStatus} from 'src/app/models/build-status.enum';
+import { convertToDDMMYYY } from 'src/app/helper/date';
 
 @Component({
   selector: 'app-repository-details',
@@ -32,11 +33,11 @@ export class RepositoryDetailsComponent implements OnInit {
       .pipe(map(builds =>
         ({
           listItems: builds
-            .sort((a, b) => a?.startTime - b?.startTime)
+            .reverse()
             .map(build => ({
               label: `${build.repository}:${build.tag}`,
               preLabel: `#${build.buildId.substr(0, 18)}`,
-              sufLabel: new Date(build.timestamp * 1000).toISOString(),
+              sufLabel: convertToDDMMYYY(build.timestamp),
               color: BuildStatus[build.buildStatus]
             }))
         })))

@@ -1,9 +1,10 @@
-import {Component, OnInit} from '@angular/core';
-import {GraphQlService} from 'src/app/services/graphql.service';
-import {Observable} from 'rxjs';
-import {List} from 'src/app/models/list.model';
-import {map} from 'rxjs/operators';
-import {BuildStatus} from 'src/app/models/build-status.enum';
+import { Component, OnInit } from '@angular/core';
+import { GraphQlService } from 'src/app/services/graphql.service';
+import { Observable } from 'rxjs';
+import { List } from 'src/app/models/list.model';
+import { map, timestamp } from 'rxjs/operators';
+import { BuildStatus } from 'src/app/models/build-status.enum';
+import { convertToDDMMYYY } from 'src/app/helper/date';
 
 @Component({
   selector: 'app-builds',
@@ -23,13 +24,14 @@ export class BuildsComponent implements OnInit {
         map(builds =>
           ({
             listItems: builds
-              .sort((a, b) => a?.startTime - b?.startTime)
-              .map(build => ({
-                label: `${build.repository}:${build.tag}`,
-                preLabel: `#${build.buildId.substr(0, 18)}`,
-                sufLabel: new Date(build.timestamp * 1000).toISOString(),
-                color: BuildStatus[build.buildStatus]
-              }))
+              .reverse()
+              .map(build => ( {
+                  label: `${build.repository}:${build.tag}`,
+                  preLabel: `#${build.buildId.substr(0, 18)}`,
+                  sufLabel: convertToDDMMYYY(build.timestamp),
+                  color: BuildStatus[build.buildStatus]
+                }
+              ))
           })))
   }
 }
